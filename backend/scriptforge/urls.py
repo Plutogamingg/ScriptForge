@@ -19,7 +19,9 @@ from django.urls import path, include
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('api/', include('admin_interface.urls')),  # Include admin_interface app URL file
+    path('api/', include('admin_interface.urls')), 
+    path('api/', include('script_generation.urls')), 
+ # Include admin_interface app URL file
   #  path('script_generation/', include('script_generation.urls')),  # Include script_generation app URL file
   #  path('script_management/', include('script_management.urls')),  # Include script_management app URL file
 
