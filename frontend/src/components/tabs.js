@@ -1,7 +1,8 @@
 import React from 'react';
 import { BrowserRouter as Router, Link, Route, Routes } from 'react-router-dom';
-import SignUp from '../pages/signUp';
+// import SignUp from '../pages/signUp';
 import AccountManagement from './AccountManagement';
+import SignUpPage from '../pages/SignUpPage.js';
 //import Settings from '../pages/Settings';
 
 function Tabs() {
@@ -17,7 +18,7 @@ function Tabs() {
         </nav>
         <div className="p-4">
           <Routes>
-            <Route path="/signup" element={<SignUp />} />
+            <Route path="/signup" element={<SignUpPage/>} />
             <Route path="/account/*" element={<AccountManagement />} />
           </Routes>
         </div>
