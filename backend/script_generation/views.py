@@ -1,26 +1,30 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import viewsets, permissions
-from .models import Character, Relationship, Script
-from .serializers import CharacterSerializer, RelationshipSerializer, ScriptSerializer
+from .models import Character, Relationship, Script, Story
+from .serializers import CharacterSerializer, RelationshipSerializer, ScriptSerializer, StorySerializer
 from .choices import *
 
+class StoryViewSet(viewsets.ModelViewSet):
+    queryset = Story.objects.all()
+    serializer_class = StorySerializer
+    permission_classes = [permissions.IsAuthenticated]
 
 class ScriptViewSet(viewsets.ModelViewSet):
     queryset = Script.objects.all()
     serializer_class = ScriptSerializer
-    permission_classes = [permissions.IsAuthenticatedOrReadOnly]  # Adjust permissions as needed
+    permission_classes = [permissions.IsAuthenticated]  # Adjust permissions as needed
 
 
 class CharacterViewSet(viewsets.ModelViewSet):
     queryset = Character.objects.all()
     serializer_class = CharacterSerializer
-    permission_classes = [permissions.IsAuthenticatedOrReadOnly]  # Adjust permissions as needed
+    permission_classes = [permissions.IsAuthenticated]  # Adjust permissions as needed
 
 class RelationshipViewSet(viewsets.ModelViewSet):
     queryset = Relationship.objects.all()
     serializer_class = RelationshipSerializer
-    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+    permission_classes = [permissions.IsAuthenticated]
 
 class DropdownChoicesAPIView(APIView):
     def get(self, request):

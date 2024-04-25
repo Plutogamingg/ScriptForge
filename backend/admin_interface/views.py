@@ -38,7 +38,13 @@ class LoginView(APIView):
 
         # I create a response object and set a cookie named 'jwt' with the token, marking it as HttpOnly.
         response = Response()
-        response.set_cookie(key='jwt', value=token, httponly=True)
+        response.set_cookie(
+            key='jwt',
+            value=token,
+            httponly=True,
+            secure=True,  # use secure=True in production
+            samesite='None'  # or 'Strict' depending on your CSRF protection needs
+)
         # I include the JWT in the response data as well, mainly for debugging or direct API use cases.
         response.data = {
             'jwt': token

@@ -1,8 +1,123 @@
-// SignUpPage.js
-import React from 'react';
+import React, { useState } from 'react';
 
+export default function SignUpPage() {
+  const [email, setEmail] = useState('');
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [passwordStrength, setPasswordStrength] = useState('');
+  const [loginEmail, setLoginEmail] = useState('');
+  const [loginPassword, setLoginPassword] = useState('');
+  const [showLogin, setShowLogin] = useState(false);
 
-const SignUpPage = () => {
+const toggleLoginDropdown = () => setShowLogin(!showLogin);
+
+  const handleLoginSubmit = (event) => {
+    event.preventDefault();
+    console.log('Logging in with:', loginEmail, loginPassword);
+  
+    fetch('http://localhost:8000/api/admin/login', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ email: loginEmail, password: loginPassword }),
+    })
+    .then(response => {
+      if (!response.ok) {
+        throw new Error('Login response was not ok');
+      }
+      return response.json();
+    })
+    .then(data => {
+      console.log('Login successful:', data);
+      // Here, save the login token to local storage, state, or context for session management
+    })
+    .catch((error) => {
+      console.error('Error during login:', error);
+    });
+  };
+  
+
+  const checkPasswordStrength = (password) => {
+    setPassword(password);
+    if (password.length < 6) {
+      setPasswordStrength('weak');
+    } else if (password.length >= 8 && /(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*])/.test(password)) {
+      setPasswordStrength('strong');
+    } else if (/(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])/.test(password)) {
+      setPasswordStrength('medium');
+    } else {
+      setPasswordStrength('weak');
+    }
+  };
+
+  const handleSubmit = (event) => {
+    event.preventDefault();
+
+    if (password !== confirmPassword) {
+      console.error('Passwords do not match');
+      return; // Prevent submission if passwords do not match
+    }
+
+    checkPasswordStrength(password);
+
+    if (passwordStrength === 'weak') {
+      console.error('Password is too weak');
+      return; // Prevent submission if the password is weak
+    }
+
+    fetch('http://localhost:8000/api/admin/register', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        email,
+        password,
+        first_name: firstName,
+        last_name: lastName,
+      }),
+    })
+    .then(response => {
+      if (!response.ok) {
+        throw new Error('Network response was not ok during signup');
+      }
+      return response.json();
+    })
+    .then(data => {
+      console.log('Success:', data);
+      // Assume `data` includes some token or means to authenticate the user
+      loginNewUser(email, password);  // Log in the user right after registration
+    })
+    .catch((error) => {
+      console.error('Error during signup:', error);
+    });
+  };
+  const loginNewUser = (email, password) => {
+    fetch('http://localhost:8000/api/admin/login', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ email, password }),
+    })
+    .then(response => {
+      if (!response.ok) {
+        throw new Error('Failed to log in immediately after registration');
+      }
+      return response.json();
+    })
+    .then(data => {
+      console.log('Logged in successfully:', data);
+      // Here, save the login token to local storage, state, or context for session management
+    })
+    .catch(error => {
+      console.error('Error during automatic login:', error);
+    });
+  };
+
   return (
     <>
       {/* Header with Gradient */}
@@ -20,7 +135,28 @@ const SignUpPage = () => {
             <a href="#" className="text-white text-lg">Page3</a>
             <a href="#" className="text-white text-lg">Page4</a>
           </div>
-          <a href="#" className="text-orange-custom-400 text-lg">LOGIN</a>
+          <a href="#" onClick={toggleLoginDropdown} className="text-orange-custom-400 text-lg">LOGIN</a>
+          {showLogin && (
+            <form className="absolute right-0 top-20 bg-black p-4 rounded-lg" onSubmit={handleLoginSubmit}>
+              <input
+                type="email"
+                value={loginEmail}
+                onChange={(e) => setLoginEmail(e.target.value)}
+                className="form-input bg-transparent border-b-2 border-green-500 text-white w-full mb-2 focus:outline-none focus:border-green-600"
+                placeholder="Email"
+              />
+              <input
+                type="password"
+                value={loginPassword}
+                onChange={(e) => setLoginPassword(e.target.value)}
+                className="form-input bg-transparent border-b-2 border-green-500 text-white w-full mb-2 focus:outline-none focus:border-green-600"
+                placeholder="Password"
+              />
+              <button type="submit" className="w-full text-white font-bold py-2 px-4 rounded bg-orange-500 hover:bg-orange-600 focus:outline-none focus:shadow-outline">
+                Login
+              </button>
+            </form>
+          )}
         </div>
       </header>
 
@@ -47,29 +183,19 @@ const SignUpPage = () => {
 </div>
 </div>
 
-        <form className="w-full max-w-lg bg-black p-8 bg-transparent flex justify-center flex-wrap">
-
-         
-          
-          <div className="mb-6 w-full">
-            <input type="email" id="email" className="form-input bg-transparent border-b-2 border-green-500 text-white w-full focus:outline-none focus:border-green-600 text-center" placeholder="Email" />
-          </div>
-          <div className="mb-6 w-full">
-            <input type="tel" id="contact-number" className="form-input bg-transparent border-b-2 border-green-500 text-white w-full focus:outline-none focus:border-green-600 text-center" placeholder="Contact Number" />
-          </div>
-          <div className="mb-6 w-full">
-            <input type="password" id="password" className="form-input bg-transparent border-b-2 border-green-500 text-white w-full focus:outline-none focus:border-green-600 text-center" placeholder="Password" />
-          </div>
-          <div className="mb-8 w-full">
-            <input type="password" id="confirm-password" className="form-input bg-transparent border-b-2 border-green-500 text-white w-full focus:outline-none focus:border-green-600 text-center" placeholder="Confirm Password" />
-          </div>
-          <button type="submit" className="w-250 text-black font-bold py-3 px-4 rounded-full bg-orange-500 hover:bg-orange-600 focus:outline-none focus:shadow-outline">
+<form className="w-full max-w-lg bg-black p-8 bg-transparent flex justify-center flex-wrap" onSubmit={handleSubmit}>
+          <input type="text" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} className="form-input mb-6 bg-transparent border-b-2 border-green-500 text-white w-full focus:outline-none focus:border-green-600 text-center" />
+          <input type="text" placeholder="First Name" value={firstName} onChange={(e) => setFirstName(e.target.value)} className="form-input mb-6 bg-transparent border-b-2 border-green-500 text-white w-full focus:outline-none focus:border-green-600 text-center" />
+          <input type="text" placeholder="Last Name" value={lastName} onChange={(e) => setLastName(e.target.value)} className="form-input mb-6 bg-transparent border-b-2 border-green-500 text-white w-full focus:outline-none focus:border-green-600 text-center" />
+          <input type="password" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} className="form-input mb-6 bg-transparent border-b-2 border-green-500 text-white w-full focus:outline-none focus:border-green-600 text-center" />
+          <input type="password" placeholder="Confirm Password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} className="form-input mb-6 bg-transparent border-b-2 border-green-500 text-white w-full focus:outline-none focus:border-green-600 text-center" />
+          <button type="submit" className="w-full text-black font-bold py-3 px-4 rounded-full bg-orange-500 hover:bg-orange-600 focus:outline-none focus:shadow-outline">
             SIGN UP
           </button>
         </form>
       </main>
     </>
   );
-};
+    }
 
-export default SignUpPage;
+

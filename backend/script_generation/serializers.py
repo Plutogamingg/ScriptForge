@@ -1,5 +1,10 @@
 from rest_framework import serializers
-from .models import Script, Character, Relationship
+from .models import Script, Character, Relationship, Story
+
+class StorySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Story
+        fields = '__all__'
 
 class ScriptSerializer(serializers.ModelSerializer):
     class Meta:

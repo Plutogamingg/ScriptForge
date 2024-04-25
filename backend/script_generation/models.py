@@ -1,12 +1,34 @@
 from django.db import models
 from django.conf import settings
 
+class Story(models.Model):
+    """
+    Represents a collaborative story project within the application.
+    
+    Attributes:
+        title (CharField): Title of the story.
+        description (TextField): A detailed description of the story's theme, setting, or purpose.
+        collaborators (ManyToManyField): Users who can collaborate on this story.
+        created_at (DateTimeField): Timestamp for when the story was created.
+        updated_at (DateTimeField): Timestamp for the last update to the story.
+    """
+    title = models.CharField(max_length=200)
+    description = models.TextField()
+    collaborators = models.ManyToManyField(settings.AUTH_USER_MODEL, related_name='collaborating_stories')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return self.title
+   
+
 
 class Script(models.Model):
     """
     Represents a narrative script within the application.
 
     Attributes:
+        story (ForeignKey): Reference to the story this script belongs to.
         user (ForeignKey): Reference to the user who created or owns the script.
         title (CharField): Title of the script.
         genre (CharField): Genre of the narrative (e.g., fantasy, sci-fi).
@@ -19,6 +41,7 @@ class Script(models.Model):
         created_at (DateTimeField): Timestamp for when the script was created.
         updated_at (DateTimeField): Timestamp for the last update to the script.
     """
+    story = models.ForeignKey(Story, related_name='scripts', on_delete=models.CASCADE)
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='scripts')
     title = models.CharField(max_length=200)
     genre = models.CharField(max_length=100)
@@ -48,12 +71,14 @@ class Character(models.Model):
     Represents a character within a script.
 
     Attributes:
+        story (ForeignKey): Reference to the story this character belongs to.
         name (CharField): The name of the character.
         traits (ManyToManyField): Multiple traits of the character.
         backstory (TextField): Background story of the character providing depth to their motivations and actions.
         script (ForeignKey): Reference to the script this character belongs to, allowing multiple characters per script.
         character_type (CharField): Specifies the type of character as a simple string.
     """
+    story = models.ForeignKey(Story, related_name='characters', on_delete=models.CASCADE)
     name = models.CharField(max_length=100)
     traits = models.ManyToManyField(Trait, related_name='characters')
     backstory = models.TextField()
