@@ -18,7 +18,7 @@ const toggleLoginDropdown = () => setShowLogin(!showLogin);
     event.preventDefault();
     console.log('Logging in with:', loginEmail, loginPassword);
   
-    fetch('${API_BASE_URL}/api/admin/login', {
+    fetch(`${API_BASE_URL}/api/admin/login`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -69,7 +69,7 @@ const toggleLoginDropdown = () => setShowLogin(!showLogin);
       return; // Prevent submission if the password is weak
     }
 
-    fetch('${API_BASE_URL}/api/admin/register', {
+    fetch(`${API_BASE_URL}/api/admin/register`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
