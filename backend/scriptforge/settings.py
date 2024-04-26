@@ -26,7 +26,7 @@ SECRET_KEY = 'django-insecure-8kupx7q=zhs_koou@mnej*av6zoft6-yd-&o0se8hd5j)u)@6w
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['scriptforge-backend-aa91ce867da3.herokuapp.com', 
+ALLOWED_HOSTS = ['https://scriptforge-backend-aa91ce867da3.herokuapp.com', 
                  'localhost', 
                  '127.0.0.1',  
                  'http://localhost:3000',
@@ -38,7 +38,8 @@ CORS_ALLOW_CREDENTIALS = True
 
 CORS_ALLOWED_ORIGINS = [
                  'https://scriptforge-cccdcc8042f1.herokuapp.com',
-                 'http://localhost:3000',  # For React development server
+                 'http://localhost:3000', 
+                 'https://scriptforge-backend-aa91ce867da3.herokuapp.com' # For React development server
 ]
 
 # Application definition
