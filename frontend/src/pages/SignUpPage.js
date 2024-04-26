@@ -20,6 +20,7 @@ const toggleLoginDropdown = () => setShowLogin(!showLogin);
   
     fetch(`${API_BASE_URL}/api/admin/login`, {
       method: 'POST',
+      credentials: 'include',
       headers: {
         'Content-Type': 'application/json',
       },
@@ -99,6 +100,7 @@ const toggleLoginDropdown = () => setShowLogin(!showLogin);
   const loginNewUser = (email, password) => {
     fetch(`${API_BASE_URL}/api/admin/login`, {
       method: 'POST',
+      credentials: 'include',
       headers: {
         'Content-Type': 'application/json',
       },
