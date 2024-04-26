@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import API_BASE_URL from '../hoc/url';
 
 export default function SignUpPage() {
   const [email, setEmail] = useState('');
@@ -17,7 +18,7 @@ const toggleLoginDropdown = () => setShowLogin(!showLogin);
     event.preventDefault();
     console.log('Logging in with:', loginEmail, loginPassword);
   
-    fetch('http://localhost:8000/api/admin/login', {
+    fetch('${API_BASE_URL}/api/admin/login', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -68,7 +69,7 @@ const toggleLoginDropdown = () => setShowLogin(!showLogin);
       return; // Prevent submission if the password is weak
     }
 
-    fetch('http://localhost:8000/api/admin/register', {
+    fetch('${API_BASE_URL}/api/admin/register', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

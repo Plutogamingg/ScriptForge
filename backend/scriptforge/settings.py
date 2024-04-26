@@ -29,16 +29,15 @@ DEBUG = True
 ALLOWED_HOSTS = ['scriptforge-backend-aa91ce867da3.herokuapp.com', 
                  'localhost', 
                  '127.0.0.1',  
-                 'http://localhost:3000',]
+                 'http://localhost:3000',
+                 ]
 
 CORS_ALLOW_ALL_ORIGINS = True
 
 CORS_ALLOW_CREDENTIALS = True
 
 CORS_ALLOWED_ORIGINS = [
-                 'scriptforge-backend-aa91ce867da3.herokuapp.com', 
-                 'localhost', 
-                 '127.0.0.1',  
+                 'https://scriptforge-cccdcc8042f1.herokuapp.com',
                  'http://localhost:3000',  # For React development server
 ]
 
