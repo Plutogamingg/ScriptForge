@@ -66,3 +66,4 @@ virtualenv==20.23.0
 web3==6.5.0
 websockets==11.0.3
 yarl==1.9.2
+psycopg2-binary>=2.8
