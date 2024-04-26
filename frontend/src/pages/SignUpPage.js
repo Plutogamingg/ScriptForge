@@ -97,7 +97,7 @@ const toggleLoginDropdown = () => setShowLogin(!showLogin);
     });
   };
   const loginNewUser = (email, password) => {
-    fetch('http://localhost:8000/api/admin/login', {
+    fetch(`${API_BASE_URL}/api/admin/login`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

@@ -6,6 +6,7 @@ from .serializers import UserSerializer, LoginSerializer
 from .models import User
 from django.conf import settings
 import jwt, datetime
+import jwt as pyjwt
 
 # Create your views here.
 class RegisterView(APIView):
@@ -34,7 +35,7 @@ class LoginView(APIView):
             'iat': datetime.datetime.utcnow()
         }
         # I encode the payload into a JWT using my secret key and the HS256 algorithm.
-        token = jwt.encode(payload, settings.JWT_SECRET_KEY, algorithm='HS256')
+        token = pyjwt.encode(payload, settings.JWT_SECRET_KEY, algorithm='HS256')
 
         # I create a response object and set a cookie named 'jwt' with the token, marking it as HttpOnly.
         response = Response()
@@ -43,7 +44,7 @@ class LoginView(APIView):
             value=token,
             httponly=True,
             secure=True,  # use secure=True in production
-            samesite='None'  # or 'Strict' depending on your CSRF protection needs
+            samesite='lax'  # or 'Strict' depending on your CSRF protection needs
 )
         # I include the JWT in the response data as well, mainly for debugging or direct API use cases.
         response.data = {
@@ -64,8 +65,8 @@ class UserView(APIView):
 
         try:
             # I decode the token using the same secret key and algorithm used for encoding it.
-            payload = jwt.decode(token, settings.JWT_SECRET_KEY, algorithms=['HS256'])
-        except jwt.ExpiredSignatureError:
+            payload = pyjwt.decode(token, settings.JWT_SECRET_KEY, algorithms=['HS256'])
+        except pyjwt.ExpiredSignatureError:
             # If the token has expired, I raise an exception to indicate that the user is unauthenticated.
             raise AuthenticationFailed('Unauthenticated!')
 
