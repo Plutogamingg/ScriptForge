@@ -26,7 +26,7 @@ SECRET_KEY = 'django-insecure-8kupx7q=zhs_koou@mnej*av6zoft6-yd-&o0se8hd5j)u)@6w
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['https://scriptforge-backend-aa91ce867da3.herokuapp.com', 
+ALLOWED_HOSTS = ['scriptforge-backend-aa91ce867da3.herokuapp.com', 
                  'localhost', 
                  '127.0.0.1',  
                  'http://localhost:3000',
