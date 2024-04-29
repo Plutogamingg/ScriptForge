@@ -2,11 +2,17 @@ from django.shortcuts import render
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.exceptions import AuthenticationFailed
+from rest_framework_simplejwt import tokens, views as jwt_views, serializers as jwt_serializers, exceptions as jwt_exceptions
+from rest_framework_simplejwt.tokens import RefreshToken
 from .serializers import UserSerializer, LoginSerializer
+from django.middleware import csrf
+from rest_framework import exceptions as rest_exceptions, response, decorators as rest_decorators, permissions as rest_permissions
 from .models import User
 from django.conf import settings
-import jwt, datetime
-import jwt as pyjwt
+from rest_framework import permissions, status
+from rest_framework.exceptions import ParseError
+import jwt
+
 
 # Create your views here.
 class RegisterView(APIView):
@@ -19,39 +25,50 @@ class RegisterView(APIView):
         serializer.save()
         # Finally, I return the serialized user data in the response.
         return Response(serializer.data)
-    
+
+def get_user_tokens(user):
+    refresh = tokens.RefreshToken.for_user(user)
+    return {
+        "refresh_token": str(refresh),
+        "access_token": str(refresh.access_token)
+    }
 class LoginView(APIView):
     def post(self, request):
-        # I'm creating a LoginSerializer with the data sent in the request to handle the login process.
         serializer = LoginSerializer(data=request.data)
-        # I check if the credentials provided are valid. If they're not, an exception will be raised and the process will stop here.
         serializer.is_valid(raise_exception=True)
-        # Once validated, I get the user object from the serializer's validated data.
+        
+        # serializer.validated_data will be a User object directly
         user = serializer.validated_data
-        # I prepare a payload for the JWT that includes the user's ID and the token's expiration and issued at times.
-        payload = {
-            'user_id': user.id,
-            'exp': datetime.datetime.utcnow() + datetime.timedelta(minutes=60),
-            'iat': datetime.datetime.utcnow()
-        }
-        # I encode the payload into a JWT using my secret key and the HS256 algorithm.
-        token = pyjwt.encode(payload, settings.JWT_SECRET_KEY, algorithm='HS256')
 
-        # I create a response object and set a cookie named 'jwt' with the token, marking it as HttpOnly.
-        response = Response()
-        response.set_cookie(
-            key='jwt',
-            value=token,
-            httponly=True,
-            secure=True,  # use secure=True in production
-            samesite='lax'  # or 'Strict' depending on your CSRF protection needs
-)
-        # I include the JWT in the response data as well, mainly for debugging or direct API use cases.
-        response.data = {
-            'jwt': token
-        }
+       
 
-        return response
+        # Create the response object
+        if user is not None:
+            tokens = get_user_tokens(user)
+            res = response.Response()
+            res.set_cookie(
+                key=settings.SIMPLE_JWT['AUTH_COOKIE'],
+                value=tokens["access_token"],
+                expires=settings.SIMPLE_JWT['ACCESS_TOKEN_LIFETIME'],
+                secure=settings.SIMPLE_JWT['AUTH_COOKIE_SECURE'],
+                httponly=settings.SIMPLE_JWT['AUTH_COOKIE_HTTP_ONLY'],
+                samesite=settings.SIMPLE_JWT['AUTH_COOKIE_SAMESITE']
+            )
+
+            res.set_cookie(
+                key=settings.SIMPLE_JWT['AUTH_COOKIE_REFRESH'],
+                value=tokens["refresh_token"],
+                expires=settings.SIMPLE_JWT['REFRESH_TOKEN_LIFETIME'],
+                secure=settings.SIMPLE_JWT['AUTH_COOKIE_SECURE'],
+                httponly=settings.SIMPLE_JWT['AUTH_COOKIE_HTTP_ONLY'],
+                samesite=settings.SIMPLE_JWT['AUTH_COOKIE_SAMESITE']
+            )
+
+            res.data = tokens
+            res["X-CSRFToken"] = csrf.get_token(request)
+            return res
+
+     
 
     
 class UserView(APIView):
@@ -65,8 +82,8 @@ class UserView(APIView):
 
         try:
             # I decode the token using the same secret key and algorithm used for encoding it.
-            payload = pyjwt.decode(token, settings.JWT_SECRET_KEY, algorithms=['HS256'])
-        except pyjwt.ExpiredSignatureError:
+            payload = jwt.decode(token, settings.JWT_SECRET_KEY, algorithms=['HS256'])
+        except jwt.ExpiredSignatureError:
             # If the token has expired, I raise an exception to indicate that the user is unauthenticated.
             raise AuthenticationFailed('Unauthenticated!')
 
@@ -83,14 +100,52 @@ class UserView(APIView):
         return Response(serializer.data)
     
 class LogoutView(APIView):
-    def post(self, request):
-        # I create a response object to perform actions like deleting the cookie.
-        response = Response()
-        # I delete the 'jwt' cookie, effectively logging the user out.
-        response.delete_cookie('jwt')
-        # I set the response data to indicate that the operation was successful.
-        response.data = {
-            'message': 'success'
-        }
+    permission_classes = [permissions.IsAuthenticated]
 
-        return response
+    def post(self, request):
+        try:
+            refresh_token = request.COOKIES.get(settings.SIMPLE_JWT['AUTH_COOKIE_REFRESH'])
+            token = RefreshToken(refresh_token)
+            token.blacklist()
+
+            response = Response(status=status.HTTP_205_RESET_CONTENT)
+            response.delete_cookie(settings.SIMPLE_JWT['AUTH_COOKIE'])
+            response.delete_cookie(settings.SIMPLE_JWT['AUTH_COOKIE_REFRESH'])
+            response.delete_cookie("X-CSRFToken")
+            response.delete_cookie("csrftoken")
+            response["X-CSRFToken"] = None
+            
+            return response
+        except Exception as e:  # It's a good practice to catch specific exceptions
+            raise ParseError("Invalid token") from e
+        
+
+class CookieTokenRefreshSerializer(jwt_serializers.TokenRefreshSerializer):
+    refresh = None
+
+    def validate(self, attrs):
+        attrs['refresh'] = self.context['request'].COOKIES.get('refresh')
+        if attrs['refresh']:
+            return super().validate(attrs)
+        else:
+            raise jwt_exceptions.InvalidToken(
+                'No valid token found in cookie \'refresh\'')
+
+
+class CookieTokenRefreshView(jwt_views.TokenRefreshView):
+    serializer_class = CookieTokenRefreshSerializer
+
+    def finalize_response(self, request, response, *args, **kwargs):
+        if response.data.get("refresh"):
+            response.set_cookie(
+                key=settings.SIMPLE_JWT['AUTH_COOKIE_REFRESH'],
+                value=response.data['refresh'],
+                expires=settings.SIMPLE_JWT['REFRESH_TOKEN_LIFETIME'],
+                secure=settings.SIMPLE_JWT['AUTH_COOKIE_SECURE'],
+                httponly=settings.SIMPLE_JWT['AUTH_COOKIE_HTTP_ONLY'],
+                samesite=settings.SIMPLE_JWT['AUTH_COOKIE_SAMESITE']
+            )
+
+            del response.data["refresh"]
+        response["X-CSRFToken"] = request.COOKIES.get("csrftoken")
+        return super().finalize_response(request, response, *args, **kwargs)

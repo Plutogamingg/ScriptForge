@@ -1,39 +1,26 @@
 import React, { useState } from 'react';
-import API_BASE_URL from '../hoc/url';
+import useAxiosPrivate from '../hooks/hookUrlPrivate';
 
 function CreateStoryForm() {
+    const axiosPrivate = useAxiosPrivate(); // Use the custom axios instance with interceptors
     const [formData, setFormData] = useState({
         title: '',
         description: ''
     });
 
     const handleChange = (e) => {
-        setFormData({...formData, [e.target.name]: e.target.value});
+        setFormData({ ...formData, [e.target.name]: e.target.value });
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            const response = await fetch(`${API_BASE_URL}/api/gen/stories/`, {  // Adjust this URL to your specific endpoint for creating a story
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    // If CSRF token is needed, ensure it's included in your headers or cookie is auto-handled
-                },
-                body: JSON.stringify(formData),
-                credentials: 'include'  // Ensures cookies are included with the request
-            });
-
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            } else {
-                const data = await response.json();
-                console.log('Success:', data);
-                alert('Story created successfully!');
-            }
+            const response = await axiosPrivate.post('/gen/stories/', formData);
+            console.log('Success:', response.data);
+            alert('Story created successfully!');
         } catch (error) {
-            console.error('Error:', error);
-            alert('Failed to create story.');
+            console.error('Error:', error.response ? `${error.response.data.detail}` : error.message);
+            alert('Failed to create story. Please try again.');
         }
     };
 

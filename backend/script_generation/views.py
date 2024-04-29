@@ -1,14 +1,15 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import viewsets, permissions
+from rest_framework.permissions import IsAuthenticated
 from .models import Character, Relationship, Script, Story
 from .serializers import CharacterSerializer, RelationshipSerializer, ScriptSerializer, StorySerializer
 from .choices import *
 
 class StoryViewSet(viewsets.ModelViewSet):
+    permission_classes = [IsAuthenticated]
     queryset = Story.objects.all()
     serializer_class = StorySerializer
-    permission_classes = [permissions.IsAuthenticated]
 
 class ScriptViewSet(viewsets.ModelViewSet):
     queryset = Script.objects.all()

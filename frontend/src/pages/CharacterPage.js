@@ -1,33 +1,58 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import useAxiosPrivate from '../hooks/hookUrlPrivate';
 
 function CreateCharacterForm() {
+    const axiosPrivate = useAxiosPrivate();
     const [formData, setFormData] = useState({
         name: '',
         characterType: '',
         backstory: '',
         traits: []
     });
+    const [traits, setTraits] = useState([]);
+
+    useEffect(() => {
+        const fetchTraits = async () => {
+            try {
+                const response = await axiosPrivate.get('/gen/dropdown-choices');
+                // Assuming `character_traits_choices` is the key for traits in the response
+                setTraits(response.data.character_traits_choices);
+            } catch (error) {
+                console.error('Failed to fetch traits:', error);
+            }
+        };
+
+        fetchTraits();
+    }, [axiosPrivate]);
 
     const handleChange = (e) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
     };
 
     const handleTraitChange = (e) => {
-        const options = e.target.options;
-        let value = [];
-        for (let i = 0, l = options.length; i < l; i++) {
-            if (options[i].selected) {
-                value.push(options[i].value);
-            }
+        // Using Array.from to create an array from the selected options
+        const selectedOptions = Array.from(e.target.selectedOptions, option => option.value);
+        setFormData(prevFormData => ({
+            ...prevFormData,
+            traits: selectedOptions  // Update traits in state to the array of selected options
+        }));
+    };
+    
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        try {
+            const response = await axiosPrivate.post('/gen/character', formData);
+            console.log('Success:', response.data);
+            alert('Character created successfully!');
+        } catch (error) {
+            console.error('Error:', error.response ? error.response.data.detail : error.message);
+            alert('Failed to create character. Please try again.');
         }
-        setFormData({ ...formData, traits: value });
     };
 
-    const handleSubmit = (e) => {
-        e.preventDefault();
-        console.log('Form data:', formData);
-        // Here you would typically send the formData to the backend via an API
-    };
+    
+
 
     return (
         <div className="max-w-xl mx-auto my-10 p-5 border rounded-lg">
@@ -68,22 +93,26 @@ function CreateCharacterForm() {
                         onChange={handleChange}
                     ></textarea>
                 </div>
+                {/* Other form fields */}
                 <div>
-                    <label htmlFor="traits" className="block text-sm font-medium text-gray-700">Traits</label>
-                    <select
-                        multiple
-                        name="traits"
-                        id="traits"
-                        required
-                        className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                        onChange={handleTraitChange}
-                    >
-                        {/* Placeholder for trait options. Replace with dynamic loading of traits */}
-                        <option value="brave">Brave</option>
-                        <option value="loyal">Loyal</option>
-                        <option value="clever">Clever</option>
-                    </select>
-                </div>
+    <label htmlFor="traits" className="block text-sm font-medium text-gray-700">Traits</label>
+    <select
+        multiple
+        name="traits"
+        id="traits"
+        required
+        className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+        value={formData.traits}
+        onChange={handleTraitChange}
+    >
+        {traits.map(trait => (
+            <option key={trait.key} value={trait.key}>
+                {trait.value}
+            </option>
+        ))}
+    </select>
+</div>
+
                 <div className="text-right">
                     <button
                         type="submit"

@@ -1,49 +1,53 @@
 import React, { useState } from 'react';
-import API_BASE_URL from '../hoc/url';
+import { useNavigate } from 'react-router-dom';
+import { axiosInstance } from '../hoc/url';
+import useAuth from '../hooks/hookAuth';
 
 export default function SignUpPage() {
+  const { setAccessToken, setCSRFToken } = useAuth();
+  const navigate = useNavigate();
+
   const [email, setEmail] = useState('');
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [passwordStrength, setPasswordStrength] = useState('');
-  const [loginEmail, setLoginEmail] = useState('');
-  const [loginPassword, setLoginPassword] = useState('');
-  const [showLogin, setShowLogin] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [showLogin, setShowLogin] = useState(false); // Declaration was missing
+  const [loginEmail, setLoginEmail] = useState(''); // Declaration was missing
+  const [loginPassword, setLoginPassword] = useState(''); // Declaration was missing
 
-const toggleLoginDropdown = () => setShowLogin(!showLogin);
-
-  const handleLoginSubmit = (event) => {
+  const toggleLoginDropdown = () => setShowLogin(!showLogin); // Ensure this is correctly defined
+  const handleLoginSubmit = async (event) => {
     event.preventDefault();
-    console.log('Logging in with:', loginEmail, loginPassword);
-  
-    fetch(`${API_BASE_URL}/api/admin/login`, {
-      method: 'POST',
-      credentials: 'include',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ email: loginEmail, password: loginPassword }),
-    })
-    .then(response => {
-      if (!response.ok) {
-        throw new Error('Login response was not ok');
-      }
-      return response.json();
-    })
-    .then(data => {
-      console.log('Login successful:', data);
-      // Here, save the login token to local storage, state, or context for session management
-    })
-    .catch((error) => {
-      console.error('Error during login:', error);
-    });
-  };
-  
+    setLoading(true); // Set loading to true to indicate the login process is starting
+
+    try {
+        const response = await axiosInstance.post('admin/login', {
+            email: loginEmail, // use loginEmail and loginPassword state variables
+            password: loginPassword
+        });
+
+        // Setting the authentication token and CSRF token from the response
+        setAccessToken(response.data.access_token);
+        setCSRFToken(response.headers["x-csrftoken"]);
+
+        // Optional: Clear the login credentials from state if desired
+        setLoginEmail('');
+        setLoginPassword('');
+
+        setLoading(false); // Turn off the loading indicator as login has succeeded
+
+        // Navigate to a pre-determined route or perhaps a user-specific dashboard
+    } catch (error) {
+        console.error('Login failed:', error.response ? error.response.data : error.message);
+        setLoading(false); // Ensure loading is turned off even when there is an error
+        // Optionally set error state here to show error messages on the UI
+    }
+};
 
   const checkPasswordStrength = (password) => {
-    setPassword(password);
     if (password.length < 6) {
       setPasswordStrength('weak');
     } else if (password.length >= 8 && /(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*])/.test(password)) {
@@ -55,70 +59,43 @@ const toggleLoginDropdown = () => setShowLogin(!showLogin);
     }
   };
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
-
     if (password !== confirmPassword) {
       console.error('Passwords do not match');
       return; // Prevent submission if passwords do not match
     }
-
     checkPasswordStrength(password);
-
     if (passwordStrength === 'weak') {
       console.error('Password is too weak');
       return; // Prevent submission if the password is weak
     }
 
-    fetch(`${API_BASE_URL}/api/admin/register`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        email,
-        password,
-        first_name: firstName,
-        last_name: lastName,
-      }),
-    })
-    .then(response => {
-      if (!response.ok) {
-        throw new Error('Network response was not ok during signup');
-      }
-      return response.json();
-    })
-    .then(data => {
-      console.log('Success:', data);
-      // Assume `data` includes some token or means to authenticate the user
-      loginNewUser(email, password);  // Log in the user right after registration
-    })
-    .catch((error) => {
-      console.error('Error during signup:', error);
-    });
+    try {
+      setLoading(true);
+      const response = await axiosInstance.post('admin/register', {
+        email, password, first_name: firstName, last_name: lastName,
+      });
+      console.log('Registration successful:', response.data);
+      await loginNewUser(email, password);
+    } catch (error) {
+      console.error('Error during signup:', error.response ? error.response.data : error.message);
+    } finally {
+      setLoading(false);
+    }
   };
-  const loginNewUser = (email, password) => {
-    fetch(`${API_BASE_URL}/api/admin/login`, {
-      method: 'POST',
-      credentials: 'include',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ email, password }),
-    })
-    .then(response => {
-      if (!response.ok) {
-        throw new Error('Failed to log in immediately after registration');
-      }
-      return response.json();
-    })
-    .then(data => {
-      console.log('Logged in successfully:', data);
-      // Here, save the login token to local storage, state, or context for session management
-    })
-    .catch(error => {
-      console.error('Error during automatic login:', error);
-    });
+
+  const loginNewUser = async (email, password) => {
+    try {
+      const response = await axiosInstance.post('admin/login', {
+        email, password
+      });
+      setAccessToken(response.data.access_token);
+      setCSRFToken(response.headers['x-csrftoken']);
+      navigate('/', { replace: true }); // Assuming '/' is the path you want to redirect to after login
+    } catch (error) {
+      console.error('Error during automatic login:', error.response ? error.response.data : error.message);
+    }
   };
 
   return (
