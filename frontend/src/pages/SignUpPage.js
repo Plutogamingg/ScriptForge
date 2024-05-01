@@ -100,49 +100,12 @@ export default function SignUpPage() {
 
   return (
     <>
-      {/* Header with Gradient */}
-      <header
-        className="p-5"
-        style={{
-          background: "linear-gradient(135deg, #0F0F28 100%, #050506 0%)",
-          backgroundRepeat: 'no-repeat',
-        }}
-      >
-        <div className="container mx-auto flex justify-between items-center">
-          <div className="flex space-x-4">
-            <a href="#" className="text-white text-lg">Page1</a>
-            <a href="#" className="text-white text-lg">Page2</a>
-            <a href="#" className="text-white text-lg">Page3</a>
-            <a href="#" className="text-white text-lg">Page4</a>
-          </div>
-          <a href="#" onClick={toggleLoginDropdown} className="text-orange-custom-400 text-lg">LOGIN</a>
-          {showLogin && (
-            <form className="absolute right-0 top-20 bg-black p-4 rounded-lg" onSubmit={handleLoginSubmit}>
-              <input
-                type="email"
-                value={loginEmail}
-                onChange={(e) => setLoginEmail(e.target.value)}
-                className="form-input bg-transparent border-b-2 border-green-500 text-white w-full mb-2 focus:outline-none focus:border-green-600"
-                placeholder="Email"
-              />
-              <input
-                type="password"
-                value={loginPassword}
-                onChange={(e) => setLoginPassword(e.target.value)}
-                className="form-input bg-transparent border-b-2 border-green-500 text-white w-full mb-2 focus:outline-none focus:border-green-600"
-                placeholder="Password"
-              />
-              <button type="submit" className="w-full text-white font-bold py-2 px-4 rounded bg-orange-500 hover:bg-orange-600 focus:outline-none focus:shadow-outline">
-                Login
-              </button>
-            </form>
-          )}
-        </div>
-      </header>
+     
+      
 
       {/* Main Content */}
       <main className="flex flex-col items-center justify-center min-h-screen" style={{
-        background: "linear-gradient(135deg, #0F0F28 40%, #050506 60%)",
+       
         backgroundRepeat: 'no-repeat',
       }}>
         {/* Sign Up Section */}

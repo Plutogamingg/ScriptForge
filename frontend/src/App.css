@@ -2,6 +2,10 @@
   text-align: center;
 }
 
+body {
+background: linear-gradient(135deg, #0F0F28 100%, #050506 0%) !important;
+}
+
 .App-logo {
   height: 40vmin;
   pointer-events: none;
