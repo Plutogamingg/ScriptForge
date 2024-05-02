@@ -4,7 +4,7 @@ import useAuth from '../hooks/hookAuth'
 import useAxiosPrivate from '../hooks/hookUrlPrivate'
 import useLogout from '../hooks/hookLogout'
 
-export default function User() {
+ function User() {
 
     const { user, setUser } = useAuth()
     const axiosPrivateInstance = useAxiosPrivate()
@@ -21,7 +21,7 @@ export default function User() {
 
     useEffect(() => {
         async function getUser() {
-            const { data } = await axiosPrivateInstance.get('auth/user')
+            const { data } = await axiosPrivateInstance.get('admin/user')
             setUser(data)
         }
 
@@ -36,3 +36,5 @@ export default function User() {
         </div>
     )
 }
+
+export default User;

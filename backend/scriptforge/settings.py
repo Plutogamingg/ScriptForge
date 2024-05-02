@@ -123,6 +123,9 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': BASE_DIR / 'db.sqlite3',
+        'OPTIONS': {
+            'timeout': 20,  # Set timeout to 20 seconds
+        },
     }
 }
 
@@ -151,6 +154,7 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+APPEND_SLASH = False
 
 # Internationalization
 # https://docs.djangoproject.com/en/4.2/topics/i18n/

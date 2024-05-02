@@ -1,56 +1,76 @@
 import React, { useState, useEffect } from 'react';
 import useAxiosPrivate from '../hooks/hookUrlPrivate';
+import Select from 'react-select';
 
-function CreateCharacterForm() {
+function CreateCharacterForm({ onSave, storyId }) {
     const axiosPrivate = useAxiosPrivate();
     const [formData, setFormData] = useState({
         name: '',
-        characterType: '',
+        character_type: '',
         backstory: '',
         traits: []
     });
     const [traits, setTraits] = useState([]);
+    const [characterTypes, setCharacterTypes] = useState([]);
+    const [backstoryOptions, setBackstoryOptions] = useState([]);
+
 
     useEffect(() => {
-        const fetchTraits = async () => {
+        const fetchDropdownOptions = async () => {
             try {
                 const response = await axiosPrivate.get('/gen/dropdown-choices');
-                // Assuming `character_traits_choices` is the key for traits in the response
-                setTraits(response.data.character_traits_choices);
+                setTraits(response.data.character_traits_choices.map(trait => ({
+                    value: trait.value,
+                    label: trait.key
+                })));
+                setCharacterTypes(response.data.character_type_choices.map(type => ({
+                    value: type.value,
+                    label: type.key
+                })));
+                setBackstoryOptions(response.data.character_backstory_choices.map(backstory => ({
+                    value: backstory.value,
+                    label: backstory.key
+                })));
             } catch (error) {
-                console.error('Failed to fetch traits:', error);
+                console.error('Failed to fetch dropdown options:', error);
             }
         };
-
-        fetchTraits();
+    
+        fetchDropdownOptions();
     }, [axiosPrivate]);
+    
 
     const handleChange = (e) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
     };
 
-    const handleTraitChange = (e) => {
-        // Using Array.from to create an array from the selected options
-        const selectedOptions = Array.from(e.target.selectedOptions, option => option.value);
-        setFormData(prevFormData => ({
-            ...prevFormData,
-            traits: selectedOptions  // Update traits in state to the array of selected options
-        }));
+    const handleTraitChange = (selectedOptions) => {
+        setFormData({ ...formData, traits: selectedOptions || [] });
     };
     
-
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            const response = await axiosPrivate.post('/gen/character', formData);
+            // Assuming backend expects each trait as an object with 'description'
+            const traitObjects = formData.traits.map(trait => ({ description: trait.value }));
+    
+            const completeFormData = {
+                ...formData,
+                traits: traitObjects,  // Sending each trait as an object
+                storyId  // Include storyId in the payload if needed
+            };
+    
+            const response = await axiosPrivate.post('/gen/character/', completeFormData);
             console.log('Success:', response.data);
             alert('Character created successfully!');
+            if (onSave) {
+                onSave(response.data);  // Optional callback
+            }
         } catch (error) {
             console.error('Error:', error.response ? error.response.data.detail : error.message);
             alert('Failed to create character. Please try again.');
         }
     };
-
     
 
 
@@ -70,48 +90,52 @@ function CreateCharacterForm() {
                     />
                 </div>
                 <div>
-                    <label htmlFor="characterType" className="block text-sm font-medium text-gray-700">Character Type</label>
-                    <input
-                        type="text"
-                        name="characterType"
-                        id="characterType"
-                        required
-                        className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                        value={formData.characterType}
-                        onChange={handleChange}
-                    />
-                </div>
-                <div>
-                    <label htmlFor="backstory" className="block text-sm font-medium text-gray-700">Backstory</label>
-                    <textarea
-                        name="backstory"
-                        id="backstory"
-                        required
-                        rows="4"
-                        className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                        value={formData.backstory}
-                        onChange={handleChange}
-                    ></textarea>
-                </div>
+    <label htmlFor="character_type" className="block text-sm font-medium text-gray-700">Character Type</label>
+    <Select
+    name="character_type"
+    options={characterTypes}
+    className="basic-single"
+    classNamePrefix="select"
+    onChange={(selectedOption) => setFormData({ ...formData, character_type: selectedOption.value })}
+    value={characterTypes.find(option => option.value === formData.character_type)}
+/>
+
+</div>
+<div>
+    <label htmlFor="backstory" className="block text-sm font-medium text-gray-700">Backstory</label>
+    <Select
+    name="backstory"
+    options={backstoryOptions}
+    className="basic-single"
+    classNamePrefix="select"
+    onChange={(selectedOption) => setFormData({ ...formData, backstory: selectedOption.value })}
+    value={backstoryOptions.find(option => option.value === formData.backstory)}
+/>
+
+</div>
                 {/* Other form fields */}
                 <div>
     <label htmlFor="traits" className="block text-sm font-medium text-gray-700">Traits</label>
-    <select
-        multiple
+    <Select
+        isMulti
         name="traits"
-        id="traits"
-        required
-        className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-        value={formData.traits}
+        options={traits}
+        className="basic-multi-select"
+        classNamePrefix="select"
         onChange={handleTraitChange}
-    >
-        {traits.map(trait => (
-            <option key={trait.key} value={trait.key}>
-                {trait.value}
-            </option>
-        ))}
-    </select>
+        value={formData.traits} // This should display the selected traits correctly
+    />
 </div>
+                 {/* Displaying an overview of all entered data */}
+                 <div>
+                    <h3 className="text-lg font-semibold text-gray-800 mt-6">Character Overview</h3>
+                    <ul className="list-disc ml-5 mt-2">
+                        <li><strong>Name:</strong> {formData.name}</li>
+                        <li><strong>Type:</strong> {formData.character_type}</li>
+                        <li><strong>Backstory:</strong> {formData.backstory}</li>
+                        <li><strong>Traits:</strong> {formData.traits.map(trait => trait.label).join(', ')}</li>
+                    </ul>
+                </div>
 
                 <div className="text-right">
                     <button

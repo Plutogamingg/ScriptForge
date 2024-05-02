@@ -11,6 +11,8 @@ import PersistLogin from './components/PersistLogin';
 import Navbar from './components/Nav';
 import Home from './pages/Home';
 import AuthMiddleware from './hoc/auth';
+import StorySelection from './pages/StorySelect';
+import StoryDetails from './pages/StoryDetail';
 
 
 function App() {
@@ -21,8 +23,10 @@ function App() {
         <Route index element={<Home />}></Route>
           <Route path='login' element={<SignUpPage />}></Route>
           <Route path="create-character" element={<CreateCharacterForm />} />
-          <Route path="create-script" element={<CreateScriptForm />} />
+          <Route path="/create-script/:storyId" element={<CreateScriptForm />} />
           <Route path="create-story" element={<CreateStoryForm />} />
+          <Route path="story-select" element={<StorySelection />} />
+          <Route path="/story-details/:storyId" element={<StoryDetails />} />
           <Route path='user' element={<AuthMiddleware />}>
             <Route index element={<User />}></Route>
         </Route>

@@ -28,6 +28,7 @@ class Character(models.Model):
     """
     name = models.CharField(max_length=100)
     traits = models.ManyToManyField('Trait', related_name='characters')
+    character_type = models.CharField(max_length=300, blank=True)
     backstory = models.TextField()
     stories = models.ManyToManyField(Story, through='StoryCharacter', related_name='characters')
 
@@ -54,7 +55,6 @@ class StoryCharacter(models.Model):
     """
     story = models.ForeignKey(Story, on_delete=models.CASCADE, null=True)
     character = models.ForeignKey(Character, on_delete=models.CASCADE)
-    role = models.CharField(max_length=100, blank=True)
 
 class Script(models.Model):
     """
@@ -67,9 +67,21 @@ class Script(models.Model):
         updated_at (DateTimeField): The timestamp of the last update to the script.
     """
     story = models.ForeignKey(Story, related_name='scripts', on_delete=models.CASCADE)
+    characters = models.ManyToManyField(Character, through='ScriptCharacter', related_name='scripts')
     title = models.CharField(max_length=200)
+    script_genre = models.CharField(max_length=300, blank=True)
+    script_setting = models.CharField(max_length=300, blank=True)
+    script_period = models.CharField(max_length=300, blank=True)
+    script_type = models.CharField(max_length=300, blank=True)
+    script_pace = models.CharField(max_length=300, blank=True)
+    script_tone = models.CharField(max_length=300, blank=True)
+    script_style = models.CharField(max_length=300, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+class ScriptCharacter(models.Model):
+    script = models.ForeignKey(Script, on_delete=models.CASCADE)
+    character = models.ForeignKey(Character, on_delete=models.CASCADE)
 
 class Relationship(models.Model):
     """

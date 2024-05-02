@@ -1,10 +1,23 @@
 import React, { useState } from 'react';
-import { NavLink } from 'react-router-dom';
+import { NavLink, useNavigate } from 'react-router-dom';
 import useAuth from '../hooks/hookAuth'; // Import the custom hook to access authentication-related context.
+import { useCurrentStory } from '../hooks/hookCurrentStory';
 
 export default function Navbar() {
-    const { user } = useAuth();
+    const { user } = useAuth(); // Use the useAuth hook to access user state
     const [isOpen, setIsOpen] = useState(false); // State to handle menu toggle
+
+    const { currentStory } = useCurrentStory();
+    const navigate = useNavigate();
+
+    // Function to navigate programmatically
+    const handleCreateScriptClick = () => {
+        if (currentStory && currentStory.id) {
+            navigate(`/create-script/${currentStory.id}`);
+        } else {
+            alert('No story selected');
+        }
+    };
 
     return (
         <nav className='bg-transparent p-3 w-full text-white main-nav'> 
@@ -21,7 +34,7 @@ export default function Navbar() {
                 <div className={`flex justify-between items-center w-full ${isOpen ? 'block' : 'hidden'} md:flex`} id="navbarSupportedContent">
                     <ul className='flex flex-col md:flex-row list-none ml-auto md:ml-0'>
                         <li className='nav-item'>
-                            <NavLink className={({ isActive }) => 
+                            <NavLink className={({ isActive }) =>
                                 isActive ? 'nav-link text-white px-3 py-2 rounded md:bg-blue-500' : 'nav-link text-gray-300 hover:bg-gray-700 hover:text-white px-3 py-2 rounded'
                             } to={'/'}>Home</NavLink>
                         </li>
@@ -47,12 +60,35 @@ export default function Navbar() {
                                 <li className='nav-item'>
                                     <NavLink className={({ isActive }) =>
                                         isActive ? 'nav-link text-white px-3 py-2 rounded md:bg-blue-500' : 'nav-link text-gray-300 hover:bg-gray-700 hover:text-white px-3 py-2 rounded'
-                                    } to={'/auth/user'}>User</NavLink>
+                                    } to={'/user'}>User</NavLink>
                                 </li>
                                 <li className='nav-item'>
                                     <NavLink className={({ isActive }) =>
                                         isActive ? 'nav-link text-white px-3 py-2 rounded md:bg-blue-500' : 'nav-link text-gray-300 hover:bg-gray-700 hover:text-white px-3 py-2 rounded'
                                     } to={'/create-character'}>Create Character</NavLink>
+                                </li>
+                                {currentStory && (
+                                    <>
+                                        <li className='nav-item'>
+                                            <NavLink to={`/create-script/${currentStory.id}`} className={({ isActive }) =>
+                                                isActive ? 'nav-link text-white px-3 py-2 rounded md:bg-blue-500' : 'nav-link text-gray-300 hover:bg-gray-700 hover:text-white px-3 py-2 rounded'
+                                            }>
+                                                Create Script
+                                            </NavLink>
+                                        </li>
+                                        <li className='nav-item'>
+                                            <NavLink to={`/story-details/${currentStory.id}`} className={({ isActive }) =>
+                                                isActive ? 'nav-link text-white px-3 py-2 rounded md:bg-blue-500' : 'nav-link text-gray-300 hover:bg-gray-700 hover:text-white px-3 py-2 rounded'
+                                            }>
+                                                Story Details
+                                            </NavLink>
+                                        </li>
+                                    </>
+                                )}
+                                <li className='nav-item'>
+                                    <NavLink className={({ isActive }) =>
+                                        isActive ? 'nav-link text-white px-3 py-2 rounded md:bg-blue-500' : 'nav-link text-gray-300 hover:bg-gray-700 hover:text-white px-3 py-2 rounded'
+                                    } to={'/story-select'}>Select Story</NavLink>
                                 </li>
                             </>
                         )}
