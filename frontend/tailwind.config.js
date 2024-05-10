@@ -14,6 +14,8 @@ module.exports = {
         'almost-black': '#050506',
         'off-white' : '#f1f1f1',
         'accent' : '#FFA32C',
+        'custom-dark': '#0b0b1f',
+
       },
     },
   },

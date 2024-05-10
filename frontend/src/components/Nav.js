@@ -1,105 +1,100 @@
 import React, { useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
-import useAuth from '../hooks/hookAuth'; // Import the custom hook to access authentication-related context.
-import { useCurrentStory } from '../hooks/hookCurrentStory';
+import useAuth from '../hooks/hookAuth';
 
 export default function Navbar() {
-    const { user } = useAuth(); // Use the useAuth hook to access user state
-    const [isOpen, setIsOpen] = useState(false); // State to handle menu toggle
-
-    const { currentStory } = useCurrentStory();
+    const { isLoggedIn, setAccessToken } = useAuth();
     const navigate = useNavigate();
+    const [isMenuOpen, setMenuOpen] = useState(false);
 
-    // Function to navigate programmatically
-    const handleCreateScriptClick = () => {
-        if (currentStory && currentStory.id) {
-            navigate(`/create-script/${currentStory.id}`);
-        } else {
-            alert('No story selected');
-        }
+    const handleLogout = () => {
+        setAccessToken(null);
+        navigate('/login');
+        setMenuOpen(false); // Close menu upon logging out
     };
 
+    const toggleMenu = () => {
+        setMenuOpen(!isMenuOpen);
+    };
+
+    
+
     return (
-        <nav className='bg-transparent p-3 w-full text-white main-nav'> 
-            <div className="container mx-auto flex flex-wrap items-center justify-between w-full">
-                <button className="text-white inline-flex p-3 rounded md:hidden ml-auto outline-none"
-                        onClick={() => setIsOpen(!isOpen)}
-                        aria-controls="navbarSupportedContent"
-                        aria-expanded={isOpen}
-                        aria-label="Toggle navigation">
-                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16m-7 6h7"></path>
+        <nav className={`${isMenuOpen ? 'bg-transparent' : 'bg-[#1a1a2e]'} p-3 w-full text-white relative`} style={{ height: '10vh' }}>
+            <div className="container mx-auto flex items-center justify-between">
+                <button className="text-white md:hidden" onClick={toggleMenu}>
+                    {/* Hamburger Icon */}
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" className="bi bi-list" viewBox="0 0 16 16">
+                        <path fillRule="evenodd" d="M2 12.5a.5.5 0 0 1 .5-.5h11a.5.5 0 0 1 0 1H2.5a.5.5 0 0 1-.5-.5zm0-5a.5.5 0 0 1 .5-.5h11a.5.5 0 0 1 0 1H2.5a.5.5 0 0 1-.5-.5zm0-5a.5.5 0 0 1 .5-.5h11a.5.5 0 0 1 0 1H2.5a.5.5 0 0 1-.5-.5z"/>
                     </svg>
                 </button>
-                <div className={`flex justify-between items-center w-full ${isOpen ? 'block' : 'hidden'} md:flex`} id="navbarSupportedContent">
-                    <ul className='flex flex-col md:flex-row list-none ml-auto md:ml-0'>
-                        <li className='nav-item'>
-                            <NavLink className={({ isActive }) =>
-                                isActive ? 'nav-link text-white px-3 py-2 rounded md:bg-blue-500' : 'nav-link text-gray-300 hover:bg-gray-700 hover:text-white px-3 py-2 rounded'
-                            } to={'/'}>Home</NavLink>
-                        </li>
-                        <li className='nav-item'>
-                            <NavLink className={({ isActive }) => 
-                                isActive ? 'nav-link text-white px-3 py-2 rounded md:bg-blue-500' : 'nav-link text-gray-300 hover:bg-gray-700 hover:text-white px-3 py-2 rounded'
-                            } to={'/about-us'}>About Us</NavLink>
-                        </li>
-                        {!user && (
-                            <li className='nav-item'>
-                                <NavLink className={({ isActive }) =>
-                                    isActive ? 'nav-link text-white px-3 py-2 rounded md:bg-blue-500' : 'nav-link text-gray-300 hover:bg-gray-700 hover:text-white px-3 py-2 rounded'
-                                } to={'/login'}>Login</NavLink>
-                            </li>
+                {/* Desktop Links */}
+                <div className="flex-grow md:flex md:items-center md:justify-between">
+                    <div className="hidden md:flex md:flex-row gap-4 p-3 md:p-0">
+                        <NavLink to="/" className={({ isActive }) =>
+                            isActive ? 'text-white font-semibold' : 'text-gray-300 hover:text-white'
+                        }>Home</NavLink>
+                        <NavLink to="/about-us" className={({ isActive }) =>
+                            isActive ? 'text-white font-semibold' : 'text-gray-300 hover:text-white'
+                        }>About Us</NavLink>
+                        {!isLoggedIn && (
+                            <NavLink to="/signup" className={({ isActive }) =>
+                                isActive ? 'text-white font-semibold' : 'text-gray-300 hover:text-white'
+                            }>Sign Up</NavLink>
                         )}
-                        {user && (
-                            <>
-                                <li className='nav-item'>
-                                    <NavLink className={({ isActive }) =>
-                                        isActive ? 'nav-link text-white px-3 py-2 rounded md:bg-blue-500' : 'nav-link text-gray-300 hover:bg-gray-700 hover:text-white px-3 py-2 rounded'
-                                    } to={'/create-story'}>Create Story</NavLink>
-                                </li>
-                                <li className='nav-item'>
-                                    <NavLink className={({ isActive }) =>
-                                        isActive ? 'nav-link text-white px-3 py-2 rounded md:bg-blue-500' : 'nav-link text-gray-300 hover:bg-gray-700 hover:text-white px-3 py-2 rounded'
-                                    } to={'/user'}>User</NavLink>
-                                </li>
-                                <li className='nav-item'>
-                                    <NavLink className={({ isActive }) =>
-                                        isActive ? 'nav-link text-white px-3 py-2 rounded md:bg-blue-500' : 'nav-link text-gray-300 hover:bg-gray-700 hover:text-white px-3 py-2 rounded'
-                                    } to={'/create-character'}>Create Character</NavLink>
-                                </li>
-                                {currentStory && (
-                                    <>
-                                        <li className='nav-item'>
-                                            <NavLink to={`/create-script/${currentStory.id}`} className={({ isActive }) =>
-                                                isActive ? 'nav-link text-white px-3 py-2 rounded md:bg-blue-500' : 'nav-link text-gray-300 hover:bg-gray-700 hover:text-white px-3 py-2 rounded'
-                                            }>
-                                                Create Script
-                                            </NavLink>
-                                        </li>
-                                        <li className='nav-item'>
-                                            <NavLink to={`/story-details/${currentStory.id}`} className={({ isActive }) =>
-                                                isActive ? 'nav-link text-white px-3 py-2 rounded md:bg-blue-500' : 'nav-link text-gray-300 hover:bg-gray-700 hover:text-white px-3 py-2 rounded'
-                                            }>
-                                                Story Details
-                                            </NavLink>
-                                        </li>
-                                    </>
-                                )}
-                                <li className='nav-item'>
-                                    <NavLink className={({ isActive }) =>
-                                        isActive ? 'nav-link text-white px-3 py-2 rounded md:bg-blue-500' : 'nav-link text-gray-300 hover:bg-gray-700 hover:text-white px-3 py-2 rounded'
-                                    } to={'/story-select'}>Select Story</NavLink>
-                                </li>
-                            </>
+                        {isLoggedIn && (
+                            <NavLink to="/dashboard" className={({ isActive }) =>
+                                isActive ? 'text-white font-semibold' : 'text-gray-300 hover:text-white'
+                            }>Dashboard</NavLink>
                         )}
-                    </ul>
-                    <div>
-                        <NavLink className={({ isActive }) =>
-                            isActive ? 'nav-link text-white px-3 py-2 rounded-full md:bg-blue-500' : 'nav-link text-orange-500 border-orange-500 border-2 hover:bg-orange-500 hover:text-white px-3 py-2 rounded-full'
-                        } to={'/sign-in'}>Sign In</NavLink>
+                    </div>
+                    <div className="hidden md:flex">
+                        {!isLoggedIn ? (
+                            <NavLink to="/login" className="text-orange-500 border-orange-500 border-2 px-3 py-2 rounded-full ml-4">
+                                Sign In
+                            </NavLink>
+                        ) : (
+                            <button onClick={handleLogout} className="text-orange-500 border-orange-500 border-2 px-3 py-2 rounded-full ml-4">
+                                Logout
+                            </button>
+                        )}
                     </div>
                 </div>
             </div>
+            {/* Mobile Overlay */}
+            {isMenuOpen && (
+                <div className="nav-overlay active" onClick={toggleMenu}>
+                    <div className="nav-menu active" onClick={(e) => e.stopPropagation()}>
+                        {/* Mobile Links */}
+                        <NavLink to="/" onClick={toggleMenu} className={({ isActive }) =>
+                            isActive ? 'text-white font-semibold' : 'text-gray-300 hover:text-white'
+                        }>Home</NavLink>
+                        <NavLink to="/about-us" onClick={toggleMenu} className={({ isActive }) =>
+                            isActive ? 'text-white font-semibold' : 'text-gray-300 hover:text-white'
+                        }>About Us</NavLink>
+                        {!isLoggedIn && (
+                            <NavLink to="/signup" onClick={toggleMenu} className={({ isActive }) =>
+                                isActive ? 'text-white font-semibold' : 'text-gray-300 hover:text-white'
+                            }>Sign Up</NavLink>
+                        )}
+                        {isLoggedIn && (
+                            <NavLink to="/dashboard" onClick={toggleMenu} className={({ isActive }) =>
+                                isActive ? 'text-white font-semibold' : 'text-gray-300 hover:text-white'
+                            }>Dashboard</NavLink>
+                        )}
+                        {!isLoggedIn ? (
+                            <NavLink to="/login" onClick={toggleMenu} className="text-orange-500 border-orange-500 border-2 px-3 py-2 rounded-full">
+                                Sign In
+                            </NavLink>
+                        ) : (
+                            <button onClick={handleLogout} className="text-orange-500 border-orange-500 border-2 px-3 py-2 rounded-full">
+                                Logout
+                            </button>
+                        )}
+                    </div>
+                </div>
+            )}
+            <div className={`${isMenuOpen ? 'border-transparent' : 'border-t border-white'} absolute bottom-0 left-0 w-full`}></div>
         </nav>
     );
 }

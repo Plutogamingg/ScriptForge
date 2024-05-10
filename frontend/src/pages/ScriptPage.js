@@ -1,7 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import useAxiosPrivate from '../hooks/hookUrlPrivate';
-import Select from 'react-select';
+import Select, { components } from 'react-select';
+import Modal from 'react-modal';
+import { customSelectStyles } from '../styles/dropdown';
+
+Modal.setAppElement('#root');
 
 function CreateScriptForm({ storyId }) {
     const axiosPrivate = useAxiosPrivate();
@@ -17,6 +21,7 @@ function CreateScriptForm({ storyId }) {
         script_pace: '',
         script_tone: '',
         script_type: '',
+        script_context: '',
         story: storyId // Set story ID in formData
     });
     const [dropdownChoices, setDropdownChoices] = useState({
@@ -28,6 +33,7 @@ function CreateScriptForm({ storyId }) {
         storyTones: [],
         writingStyles: []
     });
+    const [modalIsOpen, setIsOpen] = useState(false);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -63,177 +69,296 @@ function CreateScriptForm({ storyId }) {
 
     const handleChange = (e) => {
         const { name, value } = e.target;
-        setFormData(prevState => ({
-            ...prevState,
-            [name]: value
-        }));
+        setFormData(prevState => {
+            console.log('Updating text field:', name, value);
+            return {
+                ...prevState,
+                [name]: value
+            };
+        });
     };
     
-    // Example for dynamic and accessible select change handler
     const handleSelectChange = (name) => (selectedOption) => {
+        console.log('Updating dropdown:', name, selectedOption);
         setFormData(prevState => ({
             ...prevState,
             [name]: selectedOption ? selectedOption.value : ''
         }));
     };
     
+    
 
     const handleSelectCharacters = (selectedOptions) => {
         setSelectedCharacters(selectedOptions);
     };
+    const [scripts, setScripts] = useState([]); // State to store scripts
+
+
+    const fetchScripts = async () => {
+        try {
+            const response = await axiosPrivate.get(`/gen/stories/${storyId}/script`);
+            if (response.status === 200) {
+                setScripts(response.data); // Update local state with fetched scripts
+            }
+        } catch (error) {
+            console.error('Failed to fetch scripts:', error);
+        }
+    };
+    
+
+    useEffect(() => {
+        fetchScripts();
+    }, [storyId]); // Re-fetch scripts when storyId changes
+    
 
     const handleSubmit = async (event) => {
         event.preventDefault();
-        const characterIds = selectedCharacters.map(option => option.value); // Collect character IDs from selected options
+        console.log('Submitting form data:', formData);
+        const characterIds = selectedCharacters.map(option => option.value);
     
         try {
-            // First, create the script
-            const scriptResponse = await axiosPrivate.post('/gen/script/', {
-                ...formData, // Spread existing form data
-                story: storyId // Ensure this matches the backend's expected field for story ID
-            });
-    
-            console.log('Script created successfully:', scriptResponse.data);
-    
-            // If the script is created successfully, add characters to it
+            const scriptResponse = await axiosPrivate.post('/gen/script/', { ...formData, story: storyId });
             if (scriptResponse.data && scriptResponse.data.id) {
-                const addCharactersResponse = await axiosPrivate.post(`/gen/script/${scriptResponse.data.id}/add_characters/`, {
-                    character_ids: characterIds // This needs to match the backend's expected field
+                await axiosPrivate.post(`/gen/script/${scriptResponse.data.id}/add_characters/`, {
+                    character_ids: characterIds
                 });
-    
-                console.log('Characters added to script:', addCharactersResponse.data);
                 alert('Script and characters added successfully!');
+                fetchScripts(); // Refresh local script list
             }
         } catch (error) {
-            // Handle errors if the request fails
-            const errorMessage = error.response?.data?.detail || 'Failed to create script. Please try again.';
-            console.error('Error creating script or adding characters:', errorMessage);
-            alert(errorMessage);
+            console.error('Error creating script:', error);
+            alert('Failed to create script. Please try again.');
         }
     };
     
     
+    const handleDescChange = (e) => {
+        const { name, value } = e.target;
+        setFormData(prevState => ({
+            ...prevState,
+            [name]: value
+        }));
 
+        if (name === 'script_context') {
+            e.target.style.height = 'auto';
+            e.target.style.height = e.target.scrollHeight + 'px';
+        }
+    };
+    
+    const closeModal = () => {
+        setIsOpen(false);
+    };
 
+    const toggleModal = () => {
+        setIsOpen(!modalIsOpen);
+    };
+
+    // Custom dropdown indicator
+const DropdownIndicator = (props) => {
     return (
-        <div className="max-w-xl mx-auto my-10 p-5 border rounded-lg">
-            <form onSubmit={handleSubmit} className="space-y-6">
-                <div>
-                    <label htmlFor="title" className="block text-sm font-medium text-gray-700">Title</label>
-                    <input type="text" name="title" id="title" required
-                        className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                        value={formData.title} onChange={handleChange} />
-                </div>
-                <div>
-                <label>Characters:</label>
-                <Select
-                    isMulti
-                    options={characters}
-                    onChange={handleSelectCharacters}
-                    value={selectedCharacters}
-                    className="basic-multi-select"
-                    classNamePrefix="select"
-                />
-            </div>
-                <div>
-                    <label htmlFor="script_genre" className="block text-sm font-medium text-gray-700">Genre</label>
-                    <Select
-                        name="script_genre"
-                        options={dropdownChoices.genres}
-                        className="basic-single"
-                        classNamePrefix="select"
-                        onChange={handleSelectChange('script_genre')}
-                        value={dropdownChoices.genres.find(option => option.value === formData.script_genre)}
-                    />
-                </div>
-                <div>
-                    <label htmlFor="script_setting" className="block text-sm font-medium text-gray-700">Setting</label>
-                    <Select
-                        name="script_setting"
-                        options={dropdownChoices.settings}
-                        className="basic-single"
-                        classNamePrefix="select"
-                        onChange={handleSelectChange('script_setting')}
-                        value={dropdownChoices.settings.find(option => option.value === formData.script_setting)}
-                    />
-                </div>
-                <div>
-                    <label htmlFor="script_period" className="block text-sm font-medium text-gray-700">Time Period</label>
-                    <Select
-                        name="script_period"
-                        options={dropdownChoices.timePeriods}
-                        className="basic-single"
-                        classNamePrefix="select"
-                        onChange={handleSelectChange('script_period')}
-                        value={dropdownChoices.timePeriods.find(option => option.value === formData.script_period)}
-                    />
-                </div>
-                <div>
-                    <label htmlFor="script_type" className="block text-sm font-medium text-gray-700">Story Type</label>
-                    <Select
-                        name="script_type"
-                        options={dropdownChoices.storyTypes}
-                        className="basic-single"
-                        classNamePrefix="select"
-                        onChange={handleSelectChange('script_type')}
-                        value={dropdownChoices.storyTypes.find(option => option.value === formData.script_type)}
-                    />
-                </div>
-                <div>
-                    <label htmlFor="script_pace" className="block text-sm font-medium text-gray-700">Pace</label>
-                    <Select
-                        name="script_pace"
-                        options={dropdownChoices.paces}
-                        className="basic-single"
-                        classNamePrefix="select"
-                        onChange={handleSelectChange('script_pace')}
-                        value={dropdownChoices.paces.find(option => option.value === formData.script_pace)}
-                    />
-                </div>
-                <div>
-                    <label htmlFor="script_tone" className="block text-sm font-medium text-gray-700">Story Tone</label>
-                    <Select
-                        name="script_tone"
-                        options={dropdownChoices.storyTones}
-                        className="basic-single"
-                        classNamePrefix="select"
-                        onChange={handleSelectChange('script_tone')}
-                        value={dropdownChoices.storyTones.find(option => option.value === formData.script_tone)}
-                    />
-                </div>
-                <div>
-                    <label htmlFor="script_style" className="block text-sm font-medium text-gray-700">Writing Style</label>
-                    <Select
-                        name="script_style"
-                        options={dropdownChoices.writingStyles}
-                        className="basic-single"
-                        classNamePrefix="select"
-                        onChange={handleSelectChange('script_style')}
-                        value={dropdownChoices.writingStyles.find(option => option.value === formData.script_style)}
-                    />
-                </div>
-                {/* Displaying an overview of all entered data */}
-                <div>
-                    <h3 className="text-lg font-semibold text-gray-800 mt-6">Script Overview</h3>
-                    <ul className="list-disc ml-5 mt-2">
-                        <li><strong>Title:</strong> {formData.title}</li>
-                        <li><strong>Genre:</strong> {formData.script_genre}</li>
-                        <li><strong>Setting:</strong> {formData.script_setting}</li>
-                        <li><strong>Time Period:</strong> {formData.script_period}</li>
-                        <li><strong>Story Type:</strong> {formData.script_type}</li>
-                        <li><strong>Pace:</strong> {formData.script_pace}</li>
-                        <li><strong>Story Tone:</strong> {formData.script_tone}</li>
-                        <li><strong>Writing Style:</strong> {formData.script_style}</li>
-                    </ul>
-                </div>
-                <div className="text-right">
-                    <button type="submit" className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
-                        Save Script
-                    </button>
-                </div>
-            </form>
-        </div>
+      <components.DropdownIndicator {...props}>
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M5 7.5L10 12.5L15 7.5" stroke="#0BF1B7" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+        </svg>
+      </components.DropdownIndicator>
     );
+  };
+
+  return (
+    <>
+        <main className="flex flex-col items-center justify-center min-h-screen" style={{ backgroundRepeat: 'no-repeat' }}>
+            <div className="w-full max-w-lg px-6 py-12 text-center">
+                <h2 className="text-5xl font-bold text-white mb-6">
+                    <span className="text-orange-500">SCRIPT </span>
+                    <span className="text-green-400">CREATE</span>
+                </h2>
+            </div>
+            <div className="w-full max-w-xl mx-auto p-5 border border-orange-500 border-transparent rounded-lg bg-transparent">
+                <form onSubmit={handleSubmit} className="space-y-6">
+                <div>
+    <label htmlFor="title" className="sr-only">Title</label>
+    <input
+        type="text"
+        name="title"
+        id="title"
+        required
+        className="inputName"
+        placeholder="Title"
+        value={formData.title}
+        onChange={handleChange}
+    />
+</div>
+
+
+
+
+
+                    <div>
+                        <Select
+                            isMulti
+                            name="characters"
+                            options={characters}
+                            onChange={handleSelectCharacters}
+                            value={selectedCharacters}
+                            className="basic-multi-select text-white"
+                            classNamePrefix="select"
+                            styles={customSelectStyles}
+                            components={{ DropdownIndicator }}
+                            placeholder="Select Characters"
+                        />
+                    </div>
+                    <div>
+    <Select
+        name="script_genre"
+        options={dropdownChoices.genres}
+        onChange={handleSelectChange('script_genre')}
+        value={dropdownChoices.genres.find(option => option.value === formData.script_genre)}
+        className="basic-single text-white"
+        classNamePrefix="select"
+        styles={customSelectStyles}
+        placeholder="Select Genre"
+    />
+</div>
+<div>
+    <Select
+        name="script_setting"
+        options={dropdownChoices.settings}
+        onChange={handleSelectChange('script_setting')}
+        value={dropdownChoices.settings.find(option => option.value === formData.script_setting)}
+        className="basic-single text-white"
+        classNamePrefix="select"
+        styles={customSelectStyles}
+        placeholder="Select Setting"
+    />
+</div>
+<div>
+    <Select
+        name="script_period"
+        options={dropdownChoices.timePeriods}
+        onChange={handleSelectChange('script_period')}
+        value={dropdownChoices.timePeriods.find(option => option.value === formData.script_period)}
+        className="basic-single text-white"
+        classNamePrefix="select"
+        styles={customSelectStyles}
+        placeholder="Select Time Period"
+    />
+</div>
+<div>
+    <Select
+        name="script_style"
+        options={dropdownChoices.writingStyles}
+        onChange={handleSelectChange('script_style')}
+        value={dropdownChoices.writingStyles.find(option => option.value === formData.script_style)}
+        className="basic-single text-white"
+        classNamePrefix="select"
+        styles={customSelectStyles}
+        placeholder="Select Writing Style"
+    />
+</div>
+<div>
+    <Select
+        name="script_pace"
+        options={dropdownChoices.paces}
+        onChange={handleSelectChange('script_pace')}
+        value={dropdownChoices.paces.find(option => option.value === formData.script_pace)}
+        className="basic-single text-white"
+        classNamePrefix="select"
+        styles={customSelectStyles}
+        placeholder="Select Pace"
+    />
+</div>
+<div>
+    <Select
+        name="script_tone"
+        options={dropdownChoices.storyTones}
+        onChange={handleSelectChange('script_tone')}
+        value={dropdownChoices.storyTones.find(option => option.value === formData.script_tone)}
+        className="basic-single text-white"
+        classNamePrefix="select"
+        styles={customSelectStyles}
+        placeholder="Select Tone"
+    />
+</div>
+<div>
+    <Select
+        name="script_type"
+        options={dropdownChoices.storyTypes}
+        onChange={handleSelectChange('script_type')}
+        value={dropdownChoices.storyTypes.find(option => option.value === formData.script_type)}
+        className="basic-single text-white"
+        classNamePrefix="select"
+        styles={customSelectStyles}
+        placeholder="Select Type"
+    />
+</div>
+<div>
+                            <label htmlFor="script_context" className="sr-only">Script Context</label>
+                            <textarea
+                                name="script_context"
+                                id="script_context"
+                                required
+                                rows="1"
+                                className="inputName"
+                                placeholder="Description"
+                                value={formData.script_context}
+                                onChange={handleDescChange}
+                                style={{ overflow: 'hidden', resize: 'none' }}
+                            ></textarea>
+                        </div>
+                    
+                </form>
+                </div>
+                <div className="flex justify-between px-4 mt-8 mb-20 w-full">
+    <button
+        type="submit"
+        className="flex-1 mx-2 text-lg font-medium text-black bg-orange-500 hover:bg-orange-600 hover:text-white focus:outline-none focus:shadow-outline transition duration-300"
+        style={{ padding: '1rem 0' }} // Responsive padding
+        onClick={handleSubmit}
+    >
+        CREATE
+    </button>
+    <button
+        type="button"
+        className="flex-1 mx-2 text-lg font-medium text-orange-500 bg-transparent border border-orange-500 hover:bg-orange-500 hover:text-white focus:outline-none focus:shadow-outline transition duration-300"
+        style={{ padding: '1rem 0' }} // Responsive padding
+        onClick={toggleModal}
+    >
+        OVERVIEW
+    </button>
+</div>
+
+            <Modal
+                isOpen={modalIsOpen}
+                onRequestClose={closeModal}
+                style={{
+                    content: {
+                        top: '50%',
+                        left: '50%',
+                        right: 'auto',
+                        bottom: 'auto',
+                        marginRight: '-50%',
+                        transform: 'translate(-50%, -50%)',
+                        background: '#1a1a2e',
+                        color: 'white',
+                        border: '1px solid #e94560',
+                    }
+                }}
+                contentLabel="Script Overview"
+            >
+                <h2>Script Overview</h2>
+                <ul>
+                    {Object.keys(formData).map(key => (
+                        <li key={key}><strong>{key.replace('_', ' ').toUpperCase()}:</strong> {formData[key]}</li>
+                    ))}
+                </ul>
+                <button onClick={closeModal} className="mt-4 bg-red-500 text-white font-bold py-2 px-4 rounded">Close</button>
+            </Modal>
+        </main>
+    </>
+);
+
+
+
 }
 
 export default CreateScriptForm;

@@ -1,5 +1,10 @@
 from django.db import models
 from django.conf import settings
+from pinecone import Pinecone, ServerlessSpec
+
+def get_pinecone_client():
+    # Assuming the Pinecone API key is set in your environment variables
+    return Pinecone(api_key="2a189a32-205c-4922-b6f7-c2c0f1716663")
 
 class Story(models.Model):
     """
@@ -15,6 +20,34 @@ class Story(models.Model):
     description = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    index_name = models.CharField(max_length=255, null=True, blank=True)
+
+
+    def save(self, *args, **kwargs):
+        is_new = self._state.adding
+        super().save(*args, **kwargs)
+        if is_new:
+            self.create_pinecone_index()
+
+    def create_pinecone_index(self):
+        pc = get_pinecone_client()
+        index_name = f"story-{self.id}-index"
+        if index_name not in pc.list_indexes().names():
+            pc.create_index(
+                name=index_name,
+                dimension=384,  # Set dimensions to 384 as specified
+                metric='cosine',  # Set metric to cosine as specified
+                spec=ServerlessSpec(
+                    cloud='aws',  # Adjust based on your Pinecone project settings
+                    region='us-east-1'
+                )
+            )
+        self.index_name = index_name
+        self.save(update_fields=['index_name'])
+
+
+    def get_index_name(self):
+        return f"story-{self.id}-index"
 
 class Character(models.Model):
     """
@@ -39,7 +72,7 @@ class Trait(models.Model):
     Attributes:
         description (CharField): A brief description of the trait.
     """
-    description = models.CharField(max_length=100)
+    description = models.CharField(max_length=300)
     
     def __str__(self):
         return self.description
@@ -76,12 +109,21 @@ class Script(models.Model):
     script_pace = models.CharField(max_length=300, blank=True)
     script_tone = models.CharField(max_length=300, blank=True)
     script_style = models.CharField(max_length=300, blank=True)
+    script_context = models.CharField(max_length=3000, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
 class ScriptCharacter(models.Model):
     script = models.ForeignKey(Script, on_delete=models.CASCADE)
     character = models.ForeignKey(Character, on_delete=models.CASCADE)
+
+class GeneratedScript(models.Model):
+    script = models.ForeignKey(Script, related_name='generated_scripts', on_delete=models.CASCADE)
+    content = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Generated Script for {self.script.title} created on {self.created_at}"
 
 class Relationship(models.Model):
     """

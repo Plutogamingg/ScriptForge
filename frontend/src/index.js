@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom/client';
 import './index.css';
 import App from './App';
 import './tailwind.css';
+import './custom.css'
 import { AuthContextProvider } from './components/CookieBP';
 import { CurrentStoryProvider } from './hooks/hookCurrentStory';
 import { BrowserRouter } from 'react-router-dom';

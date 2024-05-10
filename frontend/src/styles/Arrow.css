@@ -1,0 +1,70 @@
+body {
+    background-color: #322B2B;
+}
+
+.arrow {
+    position: fixed;
+    top: 50%;
+    left: 190%; /* Adjusted for typical sidebar width */
+    transform: translateY(-50%); /* Center it vertically */
+    width: 30px;
+    height: 30px;
+    cursor: pointer;
+    transition: transform 0.3s ease-in-out;
+    z-index: 1100; /* Ensure it's on top of other content */
+}
+
+
+.arrow span {
+    display: block;
+    width: 30px;  
+    height: 5px; 
+    background-color: #f97316;  
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) rotate(0deg);  /* Adjusted for more precise centering */
+    border-radius: 70px;  /* Large radius to ensure fully rounded edges */
+}
+
+.arrow:hover span {
+    width: 20px;  
+    height: 20px; 
+    border-radius: 0;  /* Reset border-radius on hover */ 
+    border-bottom: 5px solid #f97316;
+    border-right: 5px solid #f97316;
+    background-color: transparent;  
+    transform: rotate(45deg) translate(-50%, -50%);  
+    animation: animate 2s infinite; 
+    margin: -10px;  
+}
+
+.arrow span:nth-child(2) {
+    animation-delay: -0.2s;
+}
+
+.arrow span:nth-child(3) {
+    animation-delay: -0.4s;
+}
+
+.arrow.open {
+    transform: translateX(55%) rotate(90deg);  
+}
+
+.arrow.closed {
+    transform: translateX(-14vw) rotate(270deg); 
+}
+
+@keyframes animate {
+    0% {
+        opacity: 0;
+        transform: rotate(45deg) translate(-10px, -10px);
+    }
+    50% {
+        opacity: 1;
+    }
+    100% {
+        opacity: 0;
+        transform: rotate(45deg) translate(10px, 10px);
+    }
+}

@@ -3,28 +3,19 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.exceptions import AuthenticationFailed
 from rest_framework_simplejwt import tokens, views as jwt_views, serializers as jwt_serializers, exceptions as jwt_exceptions
+from rest_framework import decorators as rest_decorators, response, exceptions as rest_exceptions
+from rest_framework_simplejwt.exceptions import TokenError, InvalidToken
 from rest_framework_simplejwt.tokens import RefreshToken
-from .serializers import UserSerializer, LoginSerializer
 from django.middleware import csrf
 from rest_framework import exceptions as rest_exceptions, response, decorators as rest_decorators, permissions as rest_permissions
 from .models import User
 from django.conf import settings
 from rest_framework import permissions, status
 from rest_framework.exceptions import ParseError
+from admin_interface import serializers, models
+from .serializers import UserSerializer
+from django.contrib.auth import authenticate
 import jwt
-
-
-# Create your views here.
-class RegisterView(APIView):
-    def post(self, request):
-        # I'm creating a UserSerializer with the data sent in the request.
-        serializer = UserSerializer(data=request.data)
-        # I'm checking if the data is valid. If it's not, an exception will be raised.
-        serializer.is_valid(raise_exception=True)
-        # Data is valid, so I save the user to the database.
-        serializer.save()
-        # Finally, I return the serialized user data in the response.
-        return Response(serializer.data)
 
 def get_user_tokens(user):
     refresh = tokens.RefreshToken.for_user(user)
@@ -32,93 +23,97 @@ def get_user_tokens(user):
         "refresh_token": str(refresh),
         "access_token": str(refresh.access_token)
     }
-class LoginView(APIView):
-    def post(self, request):
-        serializer = LoginSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        
-        # serializer.validated_data will be a User object directly
-        user = serializer.validated_data
 
-       
 
-        # Create the response object
-        if user is not None:
-            tokens = get_user_tokens(user)
-            res = response.Response()
-            res.set_cookie(
-                key=settings.SIMPLE_JWT['AUTH_COOKIE'],
-                value=tokens["access_token"],
-                expires=settings.SIMPLE_JWT['ACCESS_TOKEN_LIFETIME'],
-                secure=settings.SIMPLE_JWT['AUTH_COOKIE_SECURE'],
-                httponly=settings.SIMPLE_JWT['AUTH_COOKIE_HTTP_ONLY'],
-                samesite=settings.SIMPLE_JWT['AUTH_COOKIE_SAMESITE']
-            )
+@rest_decorators.api_view(["POST"])
+@rest_decorators.permission_classes([])
+def loginView(request):
+    serializer = serializers.LoginSerializer(data=request.data)
+    serializer.is_valid(raise_exception=True)
 
-            res.set_cookie(
-                key=settings.SIMPLE_JWT['AUTH_COOKIE_REFRESH'],
-                value=tokens["refresh_token"],
-                expires=settings.SIMPLE_JWT['REFRESH_TOKEN_LIFETIME'],
-                secure=settings.SIMPLE_JWT['AUTH_COOKIE_SECURE'],
-                httponly=settings.SIMPLE_JWT['AUTH_COOKIE_HTTP_ONLY'],
-                samesite=settings.SIMPLE_JWT['AUTH_COOKIE_SAMESITE']
-            )
+    email = serializer.validated_data["email"]
+    password = serializer.validated_data["password"]
 
-            res.data = tokens
-            res["X-CSRFToken"] = csrf.get_token(request)
-            return res
+    user = authenticate(email=email, password=password)
 
-     
+    if user is not None:
+        tokens = get_user_tokens(user)
+        res = response.Response()
+        res.set_cookie(
+            key=settings.SIMPLE_JWT['AUTH_COOKIE'],
+            value=tokens["access_token"],
+            expires=settings.SIMPLE_JWT['ACCESS_TOKEN_LIFETIME'],
+            secure=settings.SIMPLE_JWT['AUTH_COOKIE_SECURE'],
+            httponly=settings.SIMPLE_JWT['AUTH_COOKIE_HTTP_ONLY'],
+            samesite=settings.SIMPLE_JWT['AUTH_COOKIE_SAMESITE']
+        )
 
+        res.set_cookie(
+            key=settings.SIMPLE_JWT['AUTH_COOKIE_REFRESH'],
+            value=tokens["refresh_token"],
+            expires=settings.SIMPLE_JWT['REFRESH_TOKEN_LIFETIME'],
+            secure=settings.SIMPLE_JWT['AUTH_COOKIE_SECURE'],
+            httponly=settings.SIMPLE_JWT['AUTH_COOKIE_HTTP_ONLY'],
+            samesite=settings.SIMPLE_JWT['AUTH_COOKIE_SAMESITE']
+        )
+
+        res.data = tokens
+        res["X-CSRFToken"] = csrf.get_token(request)
+        return res
+    raise rest_exceptions.AuthenticationFailed(
+        "Email or Password is incorrect!")
+
+
+@rest_decorators.api_view(["POST"])
+@rest_decorators.permission_classes([])
+def registerView(request):
+    data = request.data.copy()  # Copy the mutable QueryDict
+    # Assume the frontend sends first_name and last_name, we combine them before serialization
+    first_name = data.get('first_name', '')
+    last_name = data.get('last_name', '')
+    data['name'] = f"{first_name} {last_name}".strip()  # Create 'name' by combining
+    serializer = UserSerializer(data=data)
+    serializer.is_valid(raise_exception=True)
+    user = serializer.save()
+    if user:
+        return response.Response({"message": "Registered!"}, status=201)
+    return rest_exceptions.AuthenticationFailed("Registration failed!")
+
+
+
+@rest_decorators.api_view(['POST'])
+@rest_decorators.permission_classes([rest_permissions.IsAuthenticated])
+def logoutView(request):
+    refreshToken = request.COOKIES.get(settings.SIMPLE_JWT['AUTH_COOKIE_REFRESH'])
     
-class UserView(APIView):
-    def get(self, request):
-        # I retrieve the JWT from the cookies sent with the request.
-        token = request.COOKIES.get('jwt')
+    if not refreshToken:
+        # Responding with 400 Bad Request if no refresh token is found
+        return response.Response({"detail": "No refresh token provided."}, status=status.HTTP_400_BAD_REQUEST)
 
-        # If there's no token found, I raise an authentication failed exception.
-        if not token:
-            raise AuthenticationFailed('Unauthenticated!')
+    try:
+        # Attempt to blacklist the refresh token
+        token = tokens.RefreshToken(refreshToken)
+        token.blacklist()
 
-        try:
-            # I decode the token using the same secret key and algorithm used for encoding it.
-            payload = jwt.decode(token, settings.JWT_SECRET_KEY, algorithms=['HS256'])
-        except jwt.ExpiredSignatureError:
-            # If the token has expired, I raise an exception to indicate that the user is unauthenticated.
-            raise AuthenticationFailed('Unauthenticated!')
+    except TokenError as e:
+        # Handle expected token errors from django-rest-framework-simplejwt
+        return response.Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+    except InvalidToken as e:
+        # Handle invalid token, e.g., corrupted token
+        return response.Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+    except Exception as e:
+        # A catch-all for any other unexpected exceptions
+        return response.Response({"detail": f"Unexpected error: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-        # I look up the user by the ID included in the token's payload.
-        user = User.objects.filter(id=payload['user_id']).first()
+    # If successful, proceed to clear cookies
+    res = response.Response({"detail": "Successfully logged out."})
+    res.delete_cookie(settings.SIMPLE_JWT['AUTH_COOKIE'])
+    res.delete_cookie(settings.SIMPLE_JWT['AUTH_COOKIE_REFRESH'])
+    res.delete_cookie("X-CSRFToken")
+    res.delete_cookie("csrftoken")
 
-        # If no user is found with this ID, I raise an exception indicating the user was not found.
-        if not user:
-            raise AuthenticationFailed('User not found!')
+    return res
 
-        # I serialize the user object to return it as a response.
-        serializer = UserSerializer(user)
-
-        return Response(serializer.data)
-    
-class LogoutView(APIView):
-    permission_classes = [permissions.IsAuthenticated]
-
-    def post(self, request):
-        try:
-            refresh_token = request.COOKIES.get(settings.SIMPLE_JWT['AUTH_COOKIE_REFRESH'])
-            token = RefreshToken(refresh_token)
-            token.blacklist()
-
-            response = Response(status=status.HTTP_205_RESET_CONTENT)
-            response.delete_cookie(settings.SIMPLE_JWT['AUTH_COOKIE'])
-            response.delete_cookie(settings.SIMPLE_JWT['AUTH_COOKIE_REFRESH'])
-            response.delete_cookie("X-CSRFToken")
-            response.delete_cookie("csrftoken")
-            response["X-CSRFToken"] = None
-            
-            return response
-        except Exception as e:  # It's a good practice to catch specific exceptions
-            raise ParseError("Invalid token") from e
-        
 
 class CookieTokenRefreshSerializer(jwt_serializers.TokenRefreshSerializer):
     refresh = None
@@ -149,3 +144,15 @@ class CookieTokenRefreshView(jwt_views.TokenRefreshView):
             del response.data["refresh"]
         response["X-CSRFToken"] = request.COOKIES.get("csrftoken")
         return super().finalize_response(request, response, *args, **kwargs)
+
+
+@rest_decorators.api_view(["GET"])
+@rest_decorators.permission_classes([rest_permissions.IsAuthenticated])
+def user(request):
+    try:
+        user = models.User.objects.get(id=request.user.id)
+    except models.User.DoesNotExist:
+        return response.Response(status_code=404)
+
+    serializer = serializers.AccountSerializer(user)
+    return response.Response(serializer.data)

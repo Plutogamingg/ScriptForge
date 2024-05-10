@@ -1,0 +1,389 @@
+.inputName {
+    width: 100%;
+    text-align: center;
+    background: transparent;
+    border: none;
+    border-bottom: 2px solid #FFA32C; /* consistent with non-focused dropdown */
+    color: #ff9800; /* initial text color */
+    padding: 10px 0;
+    font-size: 20px;
+    transition: color 0.3s ease, border-color 0.3s ease; /* Smooth transition for focus and hover effects */
+}
+
+.inputName:focus {
+    outline: none;
+    border-bottom-color: #ff9800; /* keeps same on focus */
+    color: #00e676; /* matches selected value color in dropdown */
+}
+
+.inputName:hover {
+    color: white; /* Ensure this is visible in the browser */
+}
+
+.inputName::placeholder {
+    color: #00e676; /* Placeholder text color matching selected value color in dropdown */
+}
+
+/* Tailwind utility classes can be used here if tailwind is configured, else define similar classes */
+.bg-dark {
+    background-color: #121212; /* Adjust color to match your exact background */
+}
+
+.dashboard-button {
+    width: 200px;
+    height: 200px;
+    border: 2px solid;
+    border-radius: 20px;
+    font-size: 20px;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.3s, color 0.3s;
+}
+
+.dashboard-button:hover {
+    background-color: rgba(255, 165, 0, 0.8); /* Lighten on hover */
+    color: white;
+}
+
+.dashboard-container {
+    display: flex;
+    height: 100vh;
+}
+
+.story-selector {
+    width: 25%;
+    background-color: #2a2a2a; /* Dark background for the sidebar */
+    color: white;
+    overflow-y: auto; /* Allow scrolling */
+    padding: 20px;
+}
+
+.story-details {
+    flex-grow: 1;
+    padding: 20px;
+    overflow-y: auto; /* Allow scrolling for main content */
+}
+
+ul {
+    transition: all 0.3s ease;
+    overflow: hidden;
+}
+
+/* General scrollbar styles for non-WebKit browsers */
+p {
+    scrollbar-width: thin; /* Makes the scrollbar narrower */
+    scrollbar-color: rgba(0, 0, 0, 0.5) transparent; /* Styles the scrollbar and its track */
+}
+
+/* WebKit-specific scrollbar styles */
+p::-webkit-scrollbar {
+    width: 6px; /* Narrow width for the scrollbar */
+}
+
+p::-webkit-scrollbar-track {
+    background: transparent; /* Ensures the track is not visually intrusive */
+}
+
+p::-webkit-scrollbar-thumb {
+    background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent black for minimal visibility */
+    border-radius: 10px; /* Rounded corners for the scrollbar thumb */
+}
+
+p::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(0, 0, 0, 0.7); /* Slightly darker on hover for better interaction visibility */
+}
+
+
+body {
+    overflow: hidden; 
+}
+
+.main-container {
+    overflow: hidden; 
+}
+
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.7);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.modal-overlay::after {
+    content: "Double-click to close";
+    position: absolute;
+    bottom: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 12px;
+    color: lightgray;
+}
+
+
+.modal-content {
+    position: relative;
+    padding: 20px;
+    background: white;
+    border-radius: 8px;
+    max-width: 500px;
+    max-height: 80vh;
+    overflow-y: auto;
+}
+
+.close-button, .save-button, .skip-button {
+    padding: 10px;
+    margin: 5px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.close-button {
+    background: #ccc;
+}
+
+.save-button {
+    background-color: #4CAF50; /* Green */
+    color: white;
+}
+
+.skip-button {
+    background-color: #f44336; /* Red */
+    color: white;
+}
+
+.modal-header, .modal-footer {
+    display: flex;
+    justify-content: flex-end;
+}
+
+.script-item {
+    background-color: #2a2a72;
+    margin-bottom: 10px;
+    padding: 10px;
+    border-radius: 5px;
+    color: white;
+}
+
+.script-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.script-title {
+    cursor: pointer;
+    flex-grow: 1; /* Ensures it occupies the space left by the button */
+}
+
+.generate-button {
+    padding: 5px 10px;
+    margin-left: 10px; /* Space between title and button */
+    background-color: #4CAF50;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    color: white;
+}
+
+.generated-script-list {
+    background-color: #161659;
+    margin-top: 5px;
+    padding: 5px;
+    border-radius: 5px;
+}
+
+.generated-script {
+    margin-top: 2px;
+    background-color: #1e1e3f;
+    padding: 5px;
+    border-radius: 3px;
+}
+
+.commit-button {
+    background-color: green;
+    color: white;
+    padding: 10px;
+    border: none;
+    border-radius: 5px;
+    margin-right: 10px;
+    cursor: pointer;
+}
+
+.delete-button {
+    background-color: red;
+    color: white;
+    padding: 10px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+.dashboard-container {
+    display: flex;
+    flex-wrap: nowrap;
+    width: 100%;
+    position: relative;
+    overflow: hidden;
+}
+
+.toggle-handle {
+    position: absolute;
+    top: 50%;
+    right: -0px; /* Positioned to stick out from the sidebar */
+    width: 10px;
+    height: 40px;
+    background-color: hsl(25, 95%, 53%);
+    cursor: pointer;
+    transform: translateY(-10%);
+    z-index: 1101; /* Higher than the sidebar to ensure it's clickable */
+}
+
+.story-selector {
+    width: 190px;
+    transition: transform 0.3s ease-in-out;
+    position: fixed;
+    left: 0;
+    top: 10%;
+    bottom: 0;
+    background-color: #1a1a2e; /* Updated color */
+    transform: translateX(-90%); /* Start hidden off-screen */
+    z-index: 1000;
+    border-right: 1px solid white; /* Adds a white border on the right */
+}
+
+.open {
+    transform: translateX(0); /* Slide in to become visible */
+}
+
+.story-details {
+    transition: margin-left 0.3s ease-in-out;
+    width: 100%;
+    margin-left: 0; /* No margin when sidebar is closed */
+}
+
+.story-selector.open + .story-details {
+    margin-left: 190px; /* Sidebar width as margin when open */
+}
+
+/* Overlay styles for the mobile menu */
+@media (max-width: 768px) {
+    .nav-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100vh;
+        background-color: rgba(0, 0, 0, 0.5); /* Dimmed background */
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 50; /* High z-index to ensure it is above other content */
+        transition: opacity 0.3s ease, visibility 0.3s ease;
+        opacity: 0;
+        visibility: hidden;
+    }
+
+    .nav-overlay.active {
+        opacity: 1;
+        visibility: visible;
+    }
+
+    .nav-menu {
+        background-color: #1a1a2e; /* Menu background color */
+        width: 80%;
+        max-width: 300px; /* Maximum width of the menu */
+        height: 100vh;
+        box-shadow: -2px 0 8px rgba(0, 0, 0, 0.5);
+        display: flex;
+        flex-direction: column;
+        padding: 20px;
+        transform: translateX(-100%);
+        transition: transform 0.3s ease;
+    }
+
+    .nav-menu.active {
+        transform: translateX(0);
+    }
+}
+/* Basic styles for the hamburger menu icon */
+.menu-icon {
+    display: none; /* Hidden on desktop, shown on mobile */
+    position: fixed;
+    top: 50%; /* Center vertically */
+    left: 10px; /* Maintain a margin from the left edge */
+    transform: translateY(-50%); /* Adjust to exactly center the icon vertically */
+    width: 30px;
+    height: 20px; /* Adjusted for two bars */
+    z-index: 100;
+    flex-direction: column;
+    justify-content: space-around; /* Ensure spacing is consistent */
+    cursor: pointer;
+}
+
+.menu-icon div {
+    width: 100%;
+    height: 3px;
+    background-color: white;
+    transition: transform 0.3s ease-in-out;
+}
+
+.menu-icon div:first-child {
+    width: 70%; /* Make the first bar smaller */
+}
+
+/* Rotate the entire icon 90 degrees */
+.menu-icon, .menu-icon.open {
+    transform: translateY(-50%) rotate(90deg);
+}
+
+/* Transformation for the 'open' state, forming an 'X' */
+.menu-icon.open div:first-child {
+    transform: translateY(1.5px) rotate(45deg);
+}
+.menu-icon.open div:last-child {
+    transform: translateY(-1.5px) rotate(-45deg);
+    opacity: 1; /* Keep both bars visible */
+}
+
+@media (max-width: 768px) {
+    .menu-icon {
+        display: flex; /* Only show the hamburger icon on mobile */
+    }
+    .story-selector {
+        position: fixed; /* Make the selector a full-page overlay on mobile */
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.8); /* Semi-transparent background */
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        transform: translateX(-100%);
+        transition: transform 0.3s ease-in-out;
+    }
+    .story-selector.open {
+        transform: translateX(0);
+    }
+}
+
+/* Assuming this is added to your existing CSS file */
+@media (max-width: 768px) {
+    
+
+    .title {
+        margin-top: 60px; /* Space between buttons when stacked */
+
+    }
+    .dashsel{
+        margin-bottom: 100px;
+    }
+}

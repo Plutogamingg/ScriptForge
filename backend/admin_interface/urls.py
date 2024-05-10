@@ -1,10 +1,10 @@
 from django.urls import path
-from .views import RegisterView, LoginView, UserView, LogoutView, CookieTokenRefreshView
+from admin_interface import views
 
 urlpatterns = [
-    path('register', RegisterView.as_view()),
-    path('login', LoginView.as_view()),
-    path('user', UserView.as_view()),
-    path('logout', LogoutView.as_view()),
-    path('refresh-token', CookieTokenRefreshView.as_view()), 
+    path('login', views.loginView),
+    path('register', views.registerView),
+    path('refresh-token', views.CookieTokenRefreshView.as_view()),
+    path('logout', views.logoutView),
+    path("user", views.user),
 ]

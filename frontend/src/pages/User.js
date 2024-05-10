@@ -4,7 +4,7 @@ import useAuth from '../hooks/hookAuth'
 import useAxiosPrivate from '../hooks/hookUrlPrivate'
 import useLogout from '../hooks/hookLogout'
 
- function User() {
+export default function User() {
 
     const { user, setUser } = useAuth()
     const axiosPrivateInstance = useAxiosPrivate()
@@ -36,5 +36,3 @@ import useLogout from '../hooks/hookLogout'
         </div>
     )
 }
-
-export default User;

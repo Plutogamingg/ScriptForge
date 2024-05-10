@@ -9,7 +9,16 @@ function CreateStoryForm() {
     });
 
     const handleChange = (e) => {
-        setFormData({ ...formData, [e.target.name]: e.target.value });
+        const { name, value } = e.target;
+        setFormData(prevFormData => ({
+            ...prevFormData,
+            [name]: value
+        }));
+
+        if (name === 'description') {
+            e.target.style.height = 'auto';
+            e.target.style.height = e.target.scrollHeight + 'px';
+        }
     };
 
     const handleSubmit = async (e) => {
@@ -25,42 +34,56 @@ function CreateStoryForm() {
     };
 
     return (
-        <div className="max-w-xl mx-auto my-10 p-5 border rounded-lg">
-            <form onSubmit={handleSubmit} className="space-y-6">
-                <div>
-                    <label htmlFor="title" className="block text-sm font-medium text-gray-700">Title</label>
-                    <input
-                        type="text"
-                        name="title"
-                        id="title"
-                        required
-                        className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                        value={formData.title}
-                        onChange={handleChange}
-                    />
+        <>
+            <main className="flex flex-col items-center justify-center min-h-screen" style={{ backgroundRepeat: 'no-repeat' }}>
+                <div className="w-full max-w-lg px-6 py-12 text-center">
+                    <h2 className="text-5xl font-bold text-white mb-6">
+                        <span className="text-orange-500">STORY </span>
+                        <span className="text-green-400">CREATE</span>
+                    </h2>
                 </div>
-                <div>
-                    <label htmlFor="description" className="block text-sm font-medium text-gray-700">Description</label>
-                    <textarea
-                        name="description"
-                        id="description"
-                        required
-                        rows="4"
-                        className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                        value={formData.description}
-                        onChange={handleChange}
-                    ></textarea>
+                <div className="w-full max-w-xl mx-auto p-5 border border-transparent rounded-lg bg-transparent">
+                    <form onSubmit={handleSubmit} className="space-y-6">
+                        <div>
+                            <label htmlFor="title" className="sr-only">Title</label>
+                            <input
+                                type="text"
+                                name="title"
+                                id="title"
+                                required
+                                className="inputName"
+                                placeholder="Title"
+                                value={formData.title}
+                                onChange={handleChange}
+                            />
+                        </div>
+                        <div>
+                            <label htmlFor="description" className="sr-only">Description</label>
+                            <textarea
+                                name="description"
+                                id="description"
+                                required
+                                rows="1"
+                                className="inputName"
+                                placeholder="Description"
+                                value={formData.description}
+                                onChange={handleChange}
+                                style={{ overflow: 'hidden', resize: 'none' }}
+                            ></textarea>
+                        </div>
+                    </form>
                 </div>
-                <div className="text-right">
+                <div className="flex justify-center w-full px-4 mt-8 mb-20">
                     <button
                         type="submit"
-                        className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                        className="px-16 py-3 rounded-full text-lg font-medium text-black bg-orange-500 hover:bg-orange-600 focus:outline-none focus:shadow-outline transition duration-300"
+                        onClick={handleSubmit}
                     >
                         Create Story
                     </button>
                 </div>
-            </form>
-        </div>
+            </main>
+        </>
     );
 }
 

@@ -1,10 +1,9 @@
 // AboutPage.js
 import React from 'react';
-import Layout from './Layout'; // Assume Layout contains the Navigation
 
 const AboutPage = () => {
   return (
-    <Layout>
+    <div>
       {/* About Us Header Section */}
       <section className="bg-gray-900 text-white py-20 text-center">
         <div className="container mx-auto px-4">
@@ -52,7 +51,7 @@ const AboutPage = () => {
 
       {/* Additional Sections */}
       {/* ... */}
-    </Layout>
+    </div>
   );
 };
 
