@@ -16,6 +16,11 @@ class Story(models.Model):
         created_at (DateTimeField): The creation timestamp of the story.
         updated_at (DateTimeField): The timestamp of the last update to the story.
     """
+    author = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='stories', null=True
+    )
     title = models.CharField(max_length=200)
     description = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)

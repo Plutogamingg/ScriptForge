@@ -1,20 +1,20 @@
 import React, { useEffect, useState } from 'react'
 import { Outlet } from 'react-router-dom'
-import useAuth from '../hooks/hookAuth'
-import useAxiosPrivate from '../hooks/hookUrlPrivate'
-import useRefreshToken from '../hooks/useRefresh'
+import useAuthUser from '../hooks/hookAuth'
+import useAxiosSecure from '../hooks/hookUrlPrivate'
+import useRefreshToken from '../hooks/hookRefresh'
 
-export default function PersistLogin() {
+export default function PersistUser() {
 
     const refresh = useRefreshToken()
-    const { accessToken, setUser } = useAuth()
-    const [loading, setLoading] = useState(true)
-    const axiosPrivate = useAxiosPrivate()
+    const { accessToken, setUser } = useAuthUser()
+    const [load, setload] = useState(true)
+    const axiosPrivate = useAxiosSecure()
 
     useEffect(() => {
         let isMounted = true
 
-        async function verifyUser() {
+        async function verUser() {
             try {
                 await refresh()
                 const { data } = await axiosPrivate.get('admin/user')
@@ -22,11 +22,11 @@ export default function PersistLogin() {
             } catch (error) {
                 console.log(error?.response)
             } finally {
-                isMounted && setLoading(false)
+                isMounted && setload(false)
             }
         }
 
-        !accessToken ? verifyUser() : setLoading(false)
+        !accessToken ? verUser() : setload(false)
 
         return () => {
             isMounted = false
@@ -34,6 +34,6 @@ export default function PersistLogin() {
     }, [])
 
     return (
-        loading ? "Loading" : <Outlet />
+        load ? "load" : <Outlet />
     )
 }

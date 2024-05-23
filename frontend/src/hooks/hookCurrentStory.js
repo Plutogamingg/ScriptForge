@@ -8,12 +8,11 @@ export const CurrentStoryProvider = ({ children }) => {
     const axiosPrivate = useAxiosPrivate();
 
     useEffect(() => {
-        // Fetch stories initially or handle fetching differently based on your needs
         const fetchStories = async () => {
             try {
                 const response = await axiosPrivate.get('/gen/stories/');
                 if (response.data && response.data.length > 0) {
-                    setCurrentStory(response.data[0]); // Optionally set the first story as the default
+                    setCurrentStory(response.data[0]); 
                 }
             } catch (error) {
                 console.error('Failed to fetch stories:', error);

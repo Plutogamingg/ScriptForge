@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import useAxiosPrivate from '../hooks/hookUrlPrivate';
 import Select from 'react-select';
-import CharacterForm from './CharacterPage'; // Assuming this component is set up to handle both new and story-specific character creations
+import CharacterForm from './CharacterPage'; 
 import CreateScriptForm from './ScriptPage';
 import { customSelectStyles } from '../styles/dropdown';
 import Modal from './ScriptModal';
@@ -101,6 +101,8 @@ function StoryDetails({ storyId }) {
     try {
         await axiosPrivate.post(`/gen/stories/${storyId}/add_characters/`, { character_ids: characterIds });
         fetchData(); // Refresh data to reflect changes
+        setSelectedCharacters([]); // Reset the multi-select dropdown
+
     } catch (error) {
         console.error('Error adding characters to story:', error.response.data.error);
     }
@@ -273,6 +275,25 @@ const deleteScript = async (scriptId) => {
         console.error('Error deleting script:', error.response ? error.response.data.message : error.message);
     }
 };
+const [showScripts, setShowScripts] = useState(false); // new state to toggle visibility
+
+
+
+// Function to toggle scripts visibility
+const toggleScriptsVisibility = () => {
+    setShowScripts(prev => !prev);
+};
+
+
+
+ // JSX for the Refresh Button
+ const RefreshButton = () => (
+    <button
+        onClick={fetchData}
+        className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-700 transition duration-300">
+        Refresh Scripts
+    </button>
+);
 
 
     return (
@@ -296,6 +317,7 @@ const deleteScript = async (scriptId) => {
             <path strokeLinecap="round" strokeLinejoin="round" d="M12 19l7-7-7-7" />
         </svg>
     </h2>
+    
     {showCharacterControls && (
         <>
         <div className="text-green-400 mb-10 mt-10 overflow-y-auto overflow-x-hidden bg-transparent shadow-lg rounded-lg p-4 max-w-full whitespace-normal break-words" style={{ boxShadow: '0 0 10px rgba(0, 0, 0, 0.3)', minHeight: '12rem' /* 192px or 12rem assuming 16px is 1rem */ }}>
@@ -328,7 +350,11 @@ const deleteScript = async (scriptId) => {
                 </svg>
                 <span className="absolute bottom-0 left-0 w-full border-b-2 border-orange-500"></span>
             </button>
-            {isCharacterFormVisible && <CharacterForm storyId={storyId} onSave={() => { console.log('Data saved'); /* Add your fetchData logic here */ }} />}
+            {isCharacterFormVisible && <CharacterForm storyId={storyId} onSave={() => {
+                console.log('Data saved'); // or any other logic you want to perform after save
+                setIsCharacterFormVisible(false);  // This will close the form once the save is successful
+                fetchData();  // Assuming you might want to refresh the data displayed
+            }} />}
         </div>
         <div className="text-green-400 overflow-y-auto overflow-x-hidden bg-transparent shadow-lg rounded-lg p-4 max-w-full whitespace-normal break-words" style={{ boxShadow: '0 0 10px rgba(0, 0, 0, 0.3)', minHeight: '12rem' /* 192px or 12rem assuming 16px is 1rem */ }}>
 
@@ -352,7 +378,25 @@ const deleteScript = async (scriptId) => {
 
         </>
     )}
-    <span className="absolute bottom-0 left-0 w-full h-1 bg-orange-500"></span> {/* Visual segment line */}
+    
+    <style>
+        {`
+            .span-clickable-area::before {
+                content: '';
+                position: absolute;
+                top: -10px;
+                bottom: -10px;
+                left: 0;
+                right: 0;
+                background: transparent;
+            }
+        `}
+    </style>
+    <span 
+            className="absolute bottom-0 left-0 w-full h-1 bg-orange-500 cursor-pointer span-clickable-area"
+            onClick={toggleCharacterControlsVisibility}
+        ></span> 
+
 </div>
        
 
@@ -382,6 +426,21 @@ const deleteScript = async (scriptId) => {
 </div>
 
 <div className="bg-transparent shadow-lg rounded-lg p-4 max-w-full whitespace-normal overflow-hidden" style={{ boxShadow: '0 0 10px rgba(0, 0, 0, 0.3)', minHeight: '12rem' }}>
+<div className="flex justify-center space-x-4 mb-4">
+    <button 
+        onClick={toggleScriptsVisibility} 
+        className="px-6 py-2 bg-blue-500 text-white rounded-lg shadow hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-700 focus:ring-opacity-50 transition duration-300 ease-in-out transform hover:-translate-y-1"
+    >
+        {showScripts ? 'Hide Scripts' : 'View Scripts'}
+    </button>
+    <button 
+        onClick={fetchData} 
+        className="px-6 py-2 bg-green-500 text-white rounded-lg shadow hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-700 focus:ring-opacity-50 transition duration-300 ease-in-out transform hover:-translate-y-1"
+    >
+        Refresh
+    </button>
+</div>
+            {showScripts && (
     <ul>
     {scripts.map(script => (
         < li key={script.id}  className="bg-gray-800 text-white p-2 rounded-lg m-1 flex flex-col relative"> {/* Added relative positioning */}
@@ -423,24 +482,31 @@ const deleteScript = async (scriptId) => {
                     {/* End of buttons */}
                 </div>
                 {visibleDrafts[script.id] && generatedScripts[script.id] && (
-                    <ul className="mt-4">
-                        {generatedScripts[script.id].map(gs => (
-                            <li key={gs.id} className="text-sm mt-2" onClick={() => openModalWithDraft(gs)}>
-                                Draft from {gs.created_at}: {gs.content.substring(0, 50)}...
-                            </li>
-                        ))}
-                        
-                        <li>
-                            <button onClick={() => toggleDraftVisibility(script.id)}
-                                    className="mt-2 px-4 py-1 bg-red-500 text-white rounded hover:bg-red-700 transition duration-300">
-                                Close
-                            </button>
-                        </li>
-                    </ul>
-                )}
+    <ul className="mt-4">
+        {generatedScripts[script.id].map(gs => (
+            <li 
+                key={gs.id} 
+                className="text-sm mt-2 p-2 bg-gray-700 text-white rounded hover:bg-gray-600 cursor-pointer transition duration-300 ease-in-out transform hover:scale-105"
+                onClick={() => openModalWithDraft(gs)}
+            >
+                Draft from {gs.created_at}: {gs.content.substring(0, 50)}...
+            </li>
+        ))}
+        
+        <li>
+            <button onClick={() => toggleDraftVisibility(script.id)}
+                    className="mt-2 px-4 py-1 bg-red-500 text-white rounded hover:bg-red-700 transition duration-300">
+                Close
+            </button>
+        </li>
+    </ul>
+)}
+
             </li>
         ))}
     </ul>
+                )}
+
     <DraftModal 
         isOpen={isModalDraftOpen} 
         handleClose={closeDraftModal}
@@ -462,7 +528,25 @@ const deleteScript = async (scriptId) => {
         
         </>
     )}
-    <span className="absolute bottom-0 left-0 w-full h-1 bg-green-400"></span> {/* Bottom line for visual segment */}
+    
+    <style>
+        {`
+            .span-clickable-area::before {
+                content: '';
+                position: absolute;
+                top: -10px;
+                bottom: -10px;
+                left: 0;
+                right: 0;
+                background: transparent;
+            }
+        `}
+    </style>
+    <span 
+            className="absolute bottom-0 left-0 w-full h-1  bg-green-400 cursor-pointer span-clickable-area"
+            onClick={toggleScriptControlsVisibility}
+        ></span> 
+
 </div>
 
 </div>

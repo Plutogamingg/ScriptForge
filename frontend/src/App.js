@@ -4,11 +4,10 @@ import SignUpPage from './pages/SignUpPage';
 import CreateScriptForm from './pages/ScriptPage';
 import CreateCharacterForm from './pages/CharacterPage';
 import CreateStoryForm from './pages/StoryPage';
-import User from './pages/User';
-import PersistLogin from './components/PersistLogin';
+import PersistUser from './components/PersistUser';
 import Navbar from './components/Nav';
-import Home from './pages/Home';
-import AuthMiddleware from './hoc/auth';
+import Home from './pages/HomePage';
+import UserMidware from './hoc/auth';
 import StorySelection from './pages/StorySelect';
 import StoryDetails from './pages/StoryDetail';
 import Login from './pages/login';
@@ -21,22 +20,24 @@ function App() {
     <>
       <Navbar />
       <Routes>
-        <Route element={<PersistLogin />}>
-          <Route index path='/' element={<Home />} />
+        <Route element={<PersistUser />}>
+          <Route index element={<Home />} />
           <Route path='signup' element={<SignUpPage />} />
           <Route path='login' element={<Login />} />
           <Route path="about-us" element={<AboutPage />} />
+          
           {/* Protected Routes */}
-          <Route element={<AuthMiddleware />}>
+          <Route element={<UserMidware />}>
             <Route path='dashboard' element={<Dashboard />} />
-            <Route path="create-character" element={<CreateCharacterForm />} />
-            <Route path="/create-script/:storyId" element={<CreateScriptForm />} />
-            <Route path="create-story" element={<CreateStoryForm />} />
-            <Route path="story-select" element={<StorySelection />} />
-            <Route path="story-dashboard" element={<StoryDashboard />} />
-            <Route path="/story-details/:storyId" element={<StoryDetails />} />
-            <Route path='user' element={<User />} />
+            <Route path='create-character' element={<CreateCharacterForm />} />
+            <Route path='create-script/:storyId' element={<CreateScriptForm />} />
+            <Route path='create-story' element={<CreateStoryForm />} />
+            <Route path='story-select' element={<StorySelection />} />
+            <Route path='story-dashboard' element={<StoryDashboard />} />
+            <Route path='story-details/:storyId' element={<StoryDetails />} />
           </Route>
+          
+          {/* Catch-all route */}
           <Route path='*' element={<Navigate to='/' />} />
         </Route>
       </Routes>

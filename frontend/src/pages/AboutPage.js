@@ -3,9 +3,9 @@ import React from 'react';
 
 const AboutPage = () => {
   return (
-    <div>
+    <div >
       {/* About Us Header Section */}
-      <section className="bg-gray-900 text-white py-20 text-center">
+      <section className="bg-gray-900 text-white py-20 text-center" style={{ background: 'linear-gradient(135deg, #0F0F28 100%, #050506 0%)', backgroundRepeat: 'no-repeat' }}>
         <div className="container mx-auto px-4">
           <h2 className="text-5xl font-bold mb-4">ABOUT US</h2>
           <p className="mb-8">Lorem ipsum dolor sit amet, consectetur adipiscing elit...</p>
@@ -13,7 +13,7 @@ const AboutPage = () => {
       </section>
 
       {/* Why We Are The Best Section */}
-      <section className="py-20 bg-gray-100">
+      <section className="py-20 mb-20 bg-gray-100">
         <div className="container mx-auto px-4">
           <div className="text-center mb-10">
             <h3 className="text-3xl font-bold mb-4">WHY WE ARE THE BEST</h3>
@@ -37,7 +37,7 @@ const AboutPage = () => {
       </section>
 
       {/* Achievements Section */}
-      <section className="bg-gray-800 text-white py-20">
+      <section className="bg-gray-800 mb-20 text-white py-20 ">
         <div className="container mx-auto px-4">
           <div className="flex flex-wrap justify-center text-center">
             <div className="w-full md:w-1/2 lg:w-1/4 px-4 mb-4">

@@ -60,7 +60,7 @@ SESSION_COOKIE_SAMESITE = "None"
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
-        'admin_interface.authenticate.CustomAuthentication',
+        'admin_interface.authenticate.CustomJWTAuthentication',
     ),
      "DEFAULT_PERMISSION_CLASSES": [
         'rest_framework.permissions.AllowAny',

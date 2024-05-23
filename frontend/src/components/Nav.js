@@ -1,17 +1,24 @@
 import React, { useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import useAuth from '../hooks/hookAuth';
+import useLogout from '../hooks/hookLogout';
 
 export default function Navbar() {
-    const { isLoggedIn, setAccessToken } = useAuth();
+    const { isLoggedIn } = useAuth();
     const navigate = useNavigate();
     const [isMenuOpen, setMenuOpen] = useState(false);
+    const { logout, loading } = useLogout();  // Destructure logout and loading state from the hook
 
-    const handleLogout = () => {
-        setAccessToken(null);
-        navigate('/login');
-        setMenuOpen(false); // Close menu upon logging out
+    const handleLogout = async () => {
+        try {
+            await logout();
+            navigate('/login');
+            setMenuOpen(false);  // Close menu upon logging out
+        } catch (error) {
+            console.error('Error during logout:', error);
+        }
     };
+  
 
     const toggleMenu = () => {
         setMenuOpen(!isMenuOpen);

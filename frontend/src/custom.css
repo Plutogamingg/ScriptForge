@@ -387,3 +387,120 @@ body {
         margin-bottom: 100px;
     }
 }
+
+
+/* Main container for the form */
+.main-container-2 {
+    position: relative;  /* Establishes a positioning context for absolute children */
+    width: 100%;         /* Ensures the container takes full width */
+    min-height: 25vh;    /* Minimum height to take full viewport height or more */
+    height: auto;        /* Allows the container to grow dynamically */
+    display: flex;       /* Flexbox to center contents */
+    justify-content: center;
+    align-items: flex-start; /* Align items to the top to allow for growth */
+    flex-direction: column;  /* Stack items vertically */
+    overflow: hidden;   /* Ensure the content doesn't overflow the container */
+}
+
+
+
+.form-section {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    transition: transform 0.3s ease-in-out;
+  }
+  
+/* Transitions for moving to the next section */
+.slide-enter-next {
+    transform: translateX(100%); /* Start off-screen to the right */
+  }
+  
+  .slide-enter-active-next {
+    transform: translateX(0); /* Move to the center from the right */
+  }
+  
+  .slide-exit-next {
+    transform: translateX(0); /* Start at center */
+  }
+  
+  .slide-exit-active-next {
+    transform: translateX(-100%); /* Exit to the left */
+  }
+  
+  /* Transitions for moving back to the previous section */
+  .slide-enter-prev {
+    transform: translateX(-100%); /* Start off-screen to the left */
+  }
+  
+  .slide-enter-active-prev {
+    transform: translateX(0); /* Move to the center from the left */
+  }
+  
+  .slide-exit-prev {
+    transform: translateX(0); /* Start at center */
+  }
+  
+  .slide-exit-active-prev {
+    transform: translateX(100%); /* Exit to the right */
+  }
+
+  /* Add this to your SlidingForm.css or relevant CSS file */
+  .flex-container {
+    display: flex;
+    flex-direction: column;
+    gap: 10px; /* Adjust the gap as needed for spacing between elements */
+    width: 100%; /* Ensure the container takes the full width */
+}
+
+textarea.flexible-textarea {
+    width: 100%;
+    resize: vertical; /* Allow vertical resizing */
+    min-height: 100px; /* Set a minimum height */
+    max-height: 300px; /* Set a maximum height to limit resizing */
+    overflow: auto; /* Allow scrolling if content overflows */
+}
+
+.flex-buttons {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+    margin-top: 10px; /* Add margin to create space between textarea and buttons */
+}
+
+
+.modal-1 {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal-content {
+    background-color: white;
+    padding: 20px;
+    border-radius: 5px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+
+.arrow-button {
+    background: transparent;
+    border: none;
+    color: #ff9800; /* Or any color that fits your design */
+    font-size: 16px; /* Adjust size as needed */
+    padding: 10px 20px;
+    cursor: pointer;
+    transition: color 0.3s;
+}
+
+.arrow-button:hover {
+    color: #00e676; /* Darken color on hover for feedback */
+}
+

@@ -24,9 +24,17 @@ import numpy as np
 
 
 class StoryViewSet(viewsets.ModelViewSet):
-    queryset = Story.objects.all()
     serializer_class = StorySerializer
     permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        # Filter stories by the user who is logged in
+        user = self.request.user
+        return Story.objects.filter(author=user)
+    
+    def perform_create(self, serializer):
+        # Automatically assign the logged-in user as the author of the story
+        serializer.save(author=self.request.user)
 
     @action(detail=True, methods=['get'])
     def characters(self, request, pk=None):
@@ -79,6 +87,8 @@ class StoryViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
     def destroy(self, request, *args, **kwargs):
         story = self.get_object()
+        index_name = f'story-{story.id}-index'  # Construct the Pinecone index name
+        
         with transaction.atomic():
             # Disassociate characters from the story and its scripts
             characters = Character.objects.filter(stories=story)
@@ -93,7 +103,13 @@ class StoryViewSet(viewsets.ModelViewSet):
             # Finally, delete the story
             story.delete()
 
-        return Response({'status': 'story and related data deleted'}, status=status.HTTP_204_NO_CONTENT)
+        # Delete the Pinecone index after removing the story and its related data
+        try:
+            pc = get_pinecone_client()
+            pc.delete_index(index_name)
+            return Response({'status': 'story, related data, and index deleted'}, status=status.HTTP_204_NO_CONTENT)
+        except Exception as e:
+            return Response({'status': 'error', 'message': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 class StoryCharacterListView(ListAPIView):
     serializer_class = CharacterSerializer
@@ -290,7 +306,7 @@ def chat_with_openai(request, script_id):
 
         try:
             response = openai.ChatCompletion.create(
-                model="gpt-4",
+                model="gpt-4o",
                 messages=messages,
                 max_tokens=4000
             )

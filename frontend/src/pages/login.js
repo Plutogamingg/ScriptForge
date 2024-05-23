@@ -1,11 +1,11 @@
 import React, { useState } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
-import { axiosInstance } from '../hoc/url';
-import useAuth from '../hooks/hookAuth'
+import { axiosAny } from '../hoc/url';
+import useAuthUser from '../hooks/hookAuth'
 
 export default function Login() {
 
-    const { setAccessToken, setCSRFToken } = useAuth()
+    const { setAccessToken, setCSRFToken } = useAuthUser()
     const navigate = useNavigate()
     const location = useLocation()
     const fromLocation = location?.state?.from?.pathname || '/'
@@ -27,7 +27,7 @@ export default function Login() {
         setLoading(true)
 
         try {
-            const response = await axiosInstance.post('admin/login', JSON.stringify({
+            const response = await axiosAny.post('admin/login', JSON.stringify({
                 email,
                 password
             }))

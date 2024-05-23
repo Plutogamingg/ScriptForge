@@ -1,37 +1,54 @@
-import { useState, createContext, useMemo  } from 'react'
+import { useState, createContext, useMemo } from 'react';
 
-
-export const AuthContext = createContext({
+// Initial state object for context to manage defaults and structure
+const initialState = {
     user: {},
-    setUser: () => { },
+    setUser: () => {},
     accessToken: null,
+    setAccessToken: () => {},
     refreshToken: null,
+    setRefreshToken: () => {},
     csrftoken: null,
-    setAccessToken: () => { },
-    setRefreshToken: () => { },
-    setCSRFToken: () => { },
-    isLoggedIn: false, // Add a new value to indicate login status
+    setCSRFToken: () => {},
+    isLoggedIn: false
+};
 
-})
+// Create the authentication context with the initial state
+export const UserCon = createContext(initialState);
 
-export function AuthContextProvider(props) {
+// Provider component to manage and provide authentication state
+export function UserConProvider({ children }) {
+    const [user, setUser] = useState(initialState.user);
+    const [accessToken, setAccessToken] = useState(initialState.accessToken);
+    const [refreshToken, setRefreshToken] = useState(initialState.refreshToken);
+    const [csrftoken, setCSRFToken] = useState(initialState.csrftoken);
 
-    const [user, setUser] = useState({})
-    const [accessToken, setAccessToken] = useState()
-    const [refreshToken, setRefreshToken] = useState()
-    const [csrftoken, setCSRFToken] = useState()
-    const isLoggedIn = useMemo(() => !!accessToken, [accessToken]); // Compute login status based on accessToken
+    // Compute the logged-in status based on the presence of an accessToken
+    const isLoggedIn = useMemo(() => !!accessToken, [accessToken]);
 
+    // Prepare the context value to pass down to children components
+    const contextValue = useMemo(() => ({
+        user,
+        setUser,
+        accessToken,
+        setAccessToken,
+        refreshToken,
+        setRefreshToken,
+        csrftoken,
+        setCSRFToken,
+        isLoggedIn
+    }), [user, accessToken, refreshToken, csrftoken, isLoggedIn, 
+        setUser, setAccessToken, setRefreshToken, setCSRFToken]);
 
-    return <AuthContext.Provider value={{
-        user, setUser,
-        accessToken, setAccessToken,
-        refreshToken, setRefreshToken,
-        csrftoken, setCSRFToken,
-        isLoggedIn 
-    }}>
-        {props.children}
-    </AuthContext.Provider>
+    // Render the provider with the prepared context value
+    return (
+        <UserCon.Provider value={contextValue}>
+            {children}
+        </UserCon.Provider>
+    );
 }
 
-export default AuthContext
+// Default export of the AuthContext for easy import in other parts of the application
+export default UserCon;
+
+

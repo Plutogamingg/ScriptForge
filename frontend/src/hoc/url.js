@@ -1,29 +1,33 @@
-// api-config.js
 import axios from "axios";
 
-// Determine the API base URL based on the environment
-let API_BASE_URL;
-if (window.location.hostname === 'localhost') {
-    API_BASE_URL = 'http://localhost:8000/api/';
-} else {
-    API_BASE_URL = 'https://scriptforge-backend-aa91ce867da3.herokuapp.com/api/';
-}
-
-// Create a generic Axios instance for public requests
-export const axiosInstance = axios.create({
-    baseURL: API_BASE_URL,
-    withCredentials: true,
-    headers: {
-        "Content-Type": "application/json"
+// Function to determine the API base URL based on the current environment
+const getApiBaseUrl = () => {
+    const hostname = window.location.hostname;
+    if (hostname === 'localhost') {
+        return 'http://localhost:8000/api/';
+    } else {
+        return 'https://scriptforge-backend-aa91ce867da3.herokuapp.com/api/';
     }
-});
+};
 
-// Create a specialized Axios instance for private requests that might need different interceptors
-export const axiosPrivateInstance = axios.create({
-    baseURL: API_BASE_URL,
-    withCredentials: true,
-    headers: {
-        "Content-Type": "application/json"
-    }
-});
+// Base URL for all Axios instances
+const API_BASE_URL = getApiBaseUrl();
+
+// Function to create a configured Axios instance
+const createAxios = () => {
+    return axios.create({
+        baseURL: API_BASE_URL,
+        withCredentials: true,
+        headers: {
+            "Content-Type": "application/json"
+        }
+    });
+};
+
+// Generic Axios instance for public API requests
+export const axiosAny = createAxios();
+
+// Specialized Axios instance for private API requests
+// Additional interceptors or configurations can be added here if needed
+export const axiosSecure = createAxios();
 

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { axiosInstance } from '../hoc/url';
+import { axiosAny } from '../hoc/url';
 import useAuth from '../hooks/hookAuth';
 
 export default function SignUpPage() {
@@ -24,7 +24,7 @@ export default function SignUpPage() {
     setLoading(true); // Set loading to true to indicate the login process is starting
 
     try {
-        const response = await axiosInstance.post('admin/login', {
+        const response = await axiosAny.post('admin/login', {
             email: loginEmail, // use loginEmail and loginPassword state variables
             password: loginPassword
         });
@@ -73,7 +73,7 @@ export default function SignUpPage() {
 
     try {
       setLoading(true);
-      const response = await axiosInstance.post('admin/register', {
+      const response = await axiosAny.post('admin/register', {
         email, password, first_name: firstName, last_name: lastName,
       });
       console.log('Registration successful:', response.data);
@@ -87,7 +87,7 @@ export default function SignUpPage() {
 
   const loginNewUser = async (email, password) => {
     try {
-      const response = await axiosInstance.post('admin/login', {
+      const response = await axiosAny.post('admin/login', {
         email, password
       });
       setAccessToken(response.data.access_token);
